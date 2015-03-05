@@ -1,15 +1,7 @@
 
-SUBDIRS = gbtoolsGUI include
-
-lib_LIBRARIES = libgbtools.a
-
-AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS)
-
-libgbtools_a_SOURCES = 
-libgbtools_a_LIBADD  = gbtoolsGUI/libgbtoolsGUI.a
-libgbtools_a_CFLAGS  = 
+SUBDIRS = include gbtoolsGUI
 
 # Extra files to remove for the maintainer-clean target.
 #
-MAINTAINERCLEANFILES = $(top_srcdir)/Makefile.in
+MAINTAINERCLEANFILES = $(top_srcdir)/src/Makefile.in
 

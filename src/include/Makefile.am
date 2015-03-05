@@ -5,6 +5,6 @@ $(NULL)
 
 # Extra files to remove for the maintainer-clean target.
 #
-MAINTAINERCLEANFILES = $(top_builddir)/include/Makefile.in
+MAINTAINERCLEANFILES = $(top_builddir)/src/include/Makefile.in
 
 

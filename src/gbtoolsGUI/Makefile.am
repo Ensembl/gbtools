@@ -3,7 +3,7 @@ SUBDIRS = .
 
 noinst_LIBRARIES = libgbtoolsGUI.a
 
-AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/include
+AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
 
 libgbtoolsGUI_a_SOURCES = gbtoolsGUI.cpp
 libgbtoolsGUI_a_LIBADD  = 
@@ -11,4 +11,4 @@ libgbtoolsGUI_a_CFLAGS  =
 
 # Extra files to remove for the maintainer-clean target.
 #
-MAINTAINERCLEANFILES = $(top_builddir)/gbtoolsGUI/Makefile.in
+MAINTAINERCLEANFILES = $(top_builddir)/src/gbtoolsGUI/Makefile.in

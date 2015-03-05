@@ -6,13 +6,14 @@ m4_include([./version.m4])
 AC_PREREQ([2.50])
 AC_INIT([gbtools], VERSION_NUMBER, [annosoft@sanger.ac.uk])
 AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_SRCDIR([gbtoolsGUI/gbtoolsGUI.cpp])
+AC_CONFIG_SRCDIR([src/gbtoolsGUI/gbtoolsGUI.cpp])
 AM_INIT_AUTOMAKE([1.9 foreign])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_FILES([Makefile
-include/Makefile
-gbtoolsGUI/Makefile
+src/Makefile
+src/include/Makefile
+src/gbtoolsGUI/Makefile
 ])
 
 # Check if this is a Git repository and, if so, include info about the current
