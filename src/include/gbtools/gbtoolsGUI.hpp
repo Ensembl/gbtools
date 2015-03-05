@@ -1,4 +1,4 @@
-/*  File: monitor.cpp
+/*  File: gbtoolsGUI.hpp
  *  Author: Gemma Barson, 2015-03-02
  *  Copyright (c) 2015 Genome Research Ltd
  * ---------------------------------------------------------------------------
@@ -31,12 +31,12 @@
  *      Gemma Barson      (Sanger Institute, UK)  <gb10@sanger.ac.uk>
  *      Steve Miller      (Sanger Institute, UK)  <sm23@sanger.ac.uk>
  *
- * Description: See monitor.hpp
+ * Description: Miscellaneous GUI functions
  *----------------------------------------------------------------------------
  */
 
-#ifndef _utilities_h_included_
-#define _utilities_h_included_
+#ifndef _gbtoolsGUI_h_included_
+#define _gbtoolsGUI_h_included_
 
 namespace gbtools
 {
@@ -52,4 +52,4 @@ namespace gbtools
 
 } /* gbtools */
 
-#endif /* _utilities_h_included_ */
+#endif /* _gbtoolsGUI_h_included_ */
