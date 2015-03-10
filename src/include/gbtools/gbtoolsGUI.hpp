@@ -40,7 +40,6 @@
 
 #include <gtk/gtk.h>
 
-
 namespace gbtools
 {
 
@@ -48,9 +47,10 @@ namespace gbtools
  * an #if statement */
 #define CHECK_GTK_VERSION(MAJOR, MINOR) GTK_MAJOR_VERSION > (MAJOR) || (GTK_MAJOR_VERSION == (MAJOR) && GTK_MINOR_VERSION >= (MINOR))
 
-  gboolean getMonitorSize(GtkWidget *widget, int *widthOut, int *heightOut) ;
-  gboolean getMonitorSizeFraction(GtkWidget *widget, const double widthFraction, const double heightFraction, int *widthOut, int *heightOut) ;
+gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *widthOut, int *heightOut) ;
+gboolean GUIGetTrueMonitorSizeFraction(GtkWidget *widget, const double widthFraction, const double heightFraction, int *widthOut, int *heightOut) ;
 
-} /* gbtools */
+
+} /* gbtools namespace */
 
 #endif /* _gbtoolsGUI_h_included_ */
