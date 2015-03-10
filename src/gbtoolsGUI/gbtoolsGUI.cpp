@@ -39,12 +39,11 @@
 
 namespace gbtools
 {
-
   /* Utility to get the size of the monitor multiplied by the given width/height fractions. Returns true
    * if successful, false if there was a problem (in which case output values are unchanged) */
   gboolean getMonitorSizeFraction(GtkWidget *widget, const double widthFraction, const double heightFraction, int *widthOut, int *heightOut)
   {
-    gboolean result = getMonitorSize(widget, widthOut, heightOut);
+    gboolean result = gbtools::getMonitorSize(widget, widthOut, heightOut);
 
     if (result)
       {

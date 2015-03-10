@@ -38,10 +38,11 @@
 #ifndef _gbtoolsGUI_h_included_
 #define _gbtoolsGUI_h_included_
 
+#include <gtk/gtk.h>
+
+
 namespace gbtools
 {
-
-#include <gtk/gtk.h>
 
 /* Utility macro to check that our gtk version meets the given minimum version. Use this in
  * an #if statement */
