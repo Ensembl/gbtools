@@ -60,14 +60,18 @@ static gboolean getWorkAreaSize(GdkScreen *screen, gint *width_out, gint *height
 gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_out)
 {
   gboolean result = FALSE ;
+  GdkScreen *screen = NULL ;
+  int monitor_idx = 0 ; /* default to first monitor (idx 0) */
+  gint width = 0 ;
+  gint height = 0 ;
+  GdkRectangle rect ;
 
   g_return_val_if_fail(widget, result) ;
 
   /* Note that a screen may consist of multiple monitors, so we actually use the current
    * monitor dimensions as this makes more sense than spreading our windows across multiple
    * monitors */
-  GdkScreen *screen = gtk_widget_get_screen(widget) ;
-  int monitor_idx = 0 ; /* default to first monitor (idx 0) */
+  screen = gtk_widget_get_screen(widget) ;
 
   if (widget->window)
     monitor_idx = gdk_screen_get_monitor_at_window(screen, widget->window) ;
@@ -75,10 +79,6 @@ gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_ou
   else
     monitor_idx = gdk_screen_get_primary_monitor(screen) ;
 #endif
-
-  GdkRectangle rect ;
-  gint width = 0 ;
-  gint height = 0 ;
 
 #if CHECK_GTK_VERSION(3, 4)
 
