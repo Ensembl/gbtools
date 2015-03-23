@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-m4_include([./version.m4])
+m4_include([./gbtools_version.m4])
 
 AC_PREREQ([2.50])
 AC_INIT([gbtools], VERSION_NUMBER, [annosoft@sanger.ac.uk])
