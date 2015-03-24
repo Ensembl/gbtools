@@ -1,5 +1,5 @@
-/*  File: gbtoolsGUI.hpp
- *  Author: Gemma Barson, 2015-03-02
+/*  File: gbtoolsUtils.cpp
+ *  Author: Gemma Barson, 2015-03-24
  *  Copyright (c) 2015 Genome Research Ltd
  * ---------------------------------------------------------------------------
  * gbtools is free software; you can redistribute it and/or
@@ -31,23 +31,30 @@
  *      Gemma Barson      (Sanger Institute, UK)  <gb10@sanger.ac.uk>
  *      Steve Miller      (Sanger Institute, UK)  <sm23@sanger.ac.uk>
  *
- * Description: Miscellaneous GUI functions
+ * Description: See gbtoolsUtils.hpp
  *----------------------------------------------------------------------------
  */
 
-#ifndef _gbtoolsGUI_h_included_
-#define _gbtoolsGUI_h_included_
-
 #include <gbtools/gbtoolsUtils.hpp>
+#include <config.h>
 #include <gtk/gtk.h>
+#include <string.h>
 
-namespace gbtools
+
+namespace gbtools 
 {
 
-gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *widthOut, int *heightOut) ;
-gboolean GUIGetTrueMonitorSizeFraction(GtkWidget *widget, const double widthFraction, const double heightFraction, int *widthOut, int *heightOut) ;
+/* Returns a string representing the Version.Release.Update of the gbtools code. */
+const char *UtilsGetVersionString()
+{
+  return GBTOOLS_VERSION ;
+}
+
+/* Returns a string containing the library name and version */
+const char *UtilsGetVersionTitle()
+{
+  return "gbtools - "GBTOOLS_VERSION ;
+}
 
 
 } /* gbtools namespace */
-
-#endif /* _gbtoolsGUI_h_included_ */

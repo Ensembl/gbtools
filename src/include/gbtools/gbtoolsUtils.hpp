@@ -1,5 +1,5 @@
-/*  File: gbtoolsGUI.hpp
- *  Author: Gemma Barson, 2015-03-02
+/*  File: gbtoolsUtils.hpp
+ *  Author: Gemma Barson, 2015-03-24
  *  Copyright (c) 2015 Genome Research Ltd
  * ---------------------------------------------------------------------------
  * gbtools is free software; you can redistribute it and/or
@@ -31,23 +31,27 @@
  *      Gemma Barson      (Sanger Institute, UK)  <gb10@sanger.ac.uk>
  *      Steve Miller      (Sanger Institute, UK)  <sm23@sanger.ac.uk>
  *
- * Description: Miscellaneous GUI functions
+ * Description: Miscellaneous utility functions
  *----------------------------------------------------------------------------
  */
 
-#ifndef _gbtoolsGUI_h_included_
-#define _gbtoolsGUI_h_included_
+#ifndef _gbtoolsUtils_h_included_
+#define _gbtoolsUtils_h_included_
 
-#include <gbtools/gbtoolsUtils.hpp>
 #include <gtk/gtk.h>
 
 namespace gbtools
 {
 
-gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *widthOut, int *heightOut) ;
-gboolean GUIGetTrueMonitorSizeFraction(GtkWidget *widget, const double widthFraction, const double heightFraction, int *widthOut, int *heightOut) ;
+/* Utility macro to check that our gtk version meets the given minimum version. Use this in
+ * an #if statement */
+#define CHECK_GTK_VERSION(MAJOR, MINOR) GTK_MAJOR_VERSION > (MAJOR) || (GTK_MAJOR_VERSION == (MAJOR) && GTK_MINOR_VERSION >= (MINOR))
+
+
+const char *UtilsGetVersionString() ;
+const char *UtilsGetVersionTitle() ;
 
 
 } /* gbtools namespace */
 
-#endif /* _gbtoolsGUI_h_included_ */
+#endif /* _gbtoolsUtils_h_included_ */

@@ -39,6 +39,7 @@
 #define _gbtools_h_included_
 
 
+#include <gbtools/gbtoolsUtils.hpp>
 #include <gbtools/gbtoolsGUI.hpp>
 
 
