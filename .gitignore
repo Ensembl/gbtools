@@ -6,3 +6,4 @@ config.h.in~
 config/
 configure
 build
+gbtools_version.m4
