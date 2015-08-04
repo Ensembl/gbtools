@@ -72,10 +72,11 @@ gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_ou
     monitor_idx = gdk_screen_get_primary_monitor(screen) ;
 #endif
 
+
 #if CHECK_GTK_VERSION(3, 4)
 
   gdk_screen_get_monitor_workarea(screen, monitor_idx, &rect) ;
-
+  
   width = rect.width ;
   height = rect.height ;
 
@@ -100,10 +101,10 @@ gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_ou
 #endif
 
   if (width_out)
-    *width_out = rect.width ;
+    *width_out = width ;
   
   if (height_out)
-    *height_out = rect.height ;
+    *height_out = height ;
 
   result = TRUE ;
 
