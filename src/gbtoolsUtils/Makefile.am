@@ -1,13 +1,11 @@
 
 SUBDIRS = .
 
-noinst_LIBRARIES = libgbtoolsUtils.a
-
 AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
 
-libgbtoolsUtils_a_SOURCES = gbtoolsUtils.cpp
-libgbtoolsUtils_a_LIBADD  = 
-libgbtoolsUtils_a_CFLAGS  = 
+noinst_LTLIBRARIES = libgbtoolsUtils.la
+
+libgbtoolsUtils_la_SOURCES = gbtoolsUtils.cpp
 
 # Extra files to remove for the maintainer-clean target.
 #

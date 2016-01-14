@@ -1,9 +1,11 @@
+.deps/
 Makefile.in
 aclocal.m4
 autom4te.cache/
+build/
 config.h.in
 config.h.in~
 config/
 configure
-build
 gbtools_version.m4
+m4/

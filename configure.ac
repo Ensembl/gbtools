@@ -15,6 +15,8 @@ src/Makefile
 src/include/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
+src/gbtoolsCurl/Makefile
+src/gbtoolsPfetch/Makefile
 ])
 
 # Check if this is a Git repository and, if so, include info about the current
@@ -27,6 +29,11 @@ fi
 
 # libtool
 #LT_INIT()
+
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_PROG_LIBTOOL
+
 
 # Checks for programs.
 AC_PROG_CXX
@@ -53,6 +60,11 @@ AC_CHECK_FUNCS([dup2 floor gethostbyname memset socket sqrt strcasecmp strchr st
 
 # Check for dependencies required by all executables
 PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
+
+AC_ARG_VAR(GLIB_GENMARSHAL, [The glib-genmarshal executable.])
+AC_CHECK_PROG(GLIB_GENMARSHAL, glib-genmarshal, glib-genmarshal)
+
+
 
 # Check for the curl library. This is only required by blixemh, so don't fail
 # if we can't find it, but set the USE_LIBCURL to false. Note: I think we should 
