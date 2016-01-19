@@ -9,11 +9,20 @@ lib_LTLIBRARIES = libgbtools.la
 
 libgbtools_la_SOURCES = 
 
+
+# Temp....until I convert curl and pfetch to C++
+#libgbtools_la_LIBADD  = \
+#src/gbtoolsCurl/libgbtoolsCurl.la \
+#src/gbtoolsGUI/libgbtoolsGUI.la \
+#src/gbtoolsPfetch/libgbtoolsPfetch.la \
+#src/gbtoolsUtils/libgbtoolsUtils.la
+
 libgbtools_la_LIBADD  = \
-src/gbtoolsCurl/libgbtoolsCurl.la \
 src/gbtoolsGUI/libgbtoolsGUI.la \
-src/gbtoolsPfetch/libgbtoolsPfetch.la \
 src/gbtoolsUtils/libgbtoolsUtils.la
+
+
+
 
 # Extra files to remove for the maintainer-clean target.
 # Note you cannot use this target to remove directories,
