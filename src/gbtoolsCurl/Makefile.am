@@ -1,7 +1,7 @@
 
 SUBDIRS = .
 
-AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
+AM_CPPFLAGS =  $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
 
 noinst_LTLIBRARIES = libgbtoolsCurl.la
 

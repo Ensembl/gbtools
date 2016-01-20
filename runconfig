@@ -40,6 +40,11 @@ else
 fi
 
 
+export CXXFLAGS='-std=c++0x -g'
+export LDFLAGS="-g $LDFLAGS"
+
+
+
 # run the configure.......watch out for the quoting, sometimes we want the variable to
 # be interpreted as a single cmdline arg, sometimes as multiple ones.
 
