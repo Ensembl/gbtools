@@ -32,9 +32,6 @@ fi
 
 AC_CONFIG_MACRO_DIR([m4])
 
-# superceeded by lt_init
-#AC_PROG_LIBTOOL
-
 LT_INIT([disable-shared])
 
 LT_LANG([C++])
@@ -43,13 +40,12 @@ LT_LANG([C++])
 AC_SUBST([LIBTOOL_DEPS])
 
 # Checks for programs.
-AC_PROG_CXX
-#AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-#AC_PROG_RANLIB
+
 
 # Checks for libraries.
 
@@ -100,7 +96,7 @@ echo \
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION}
 
  Prefix: '${prefix}'
- Compiler: '${CXX} ${CFLAGS} ${CPPFLAGS}'
+ Compiler: '${CXX} ${CXXFLAGS} ${CPPFLAGS}'
 
  Now type 'make @<:@<target>@:>@'
    where the optional @<:@<target>@:>@ is:
