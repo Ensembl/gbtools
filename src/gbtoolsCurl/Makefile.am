@@ -6,9 +6,9 @@ AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
 noinst_LTLIBRARIES = libgbtoolsCurl.la
 
 libgbtoolsCurl_la_SOURCES = \
-gbtoolsCurl.c \
-gbtoolsCurl.h \
-gbtoolsCurl_I.h \
+gbtoolsCurl.cpp \
+gbtoolsCurl.hpp \
+gbtoolsCurl_I.hpp \
 $(NULL) 
 
 

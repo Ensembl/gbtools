@@ -29,12 +29,7 @@
  *-------------------------------------------------------------------
  */
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <gbtools/gbtoolsCurl.h>
+#include <gbtools/gbtoolsCurl.hpp>
 
 
 #define CURL_PARAM_STATIC    (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
@@ -87,8 +82,3 @@ typedef struct _curlObjectClassStruct
   guint signals[LAST_SIGNAL];
 
 } curlObjectClassStruct;
-
-
-#ifdef __cplusplus
-}
-#endif

@@ -6,14 +6,12 @@ AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
 noinst_LTLIBRARIES = libgbtoolsPfetch.la
 
 libgbtoolsPfetch_la_SOURCES = \
-gbtoolsPfetch-utils.c \
-gbtoolsPfetch.c \
-gbtoolsPfetch.h \
-gbtoolsPfetch_I.h \
-gbtoolsPfetch_P.h \
+gbtoolsPfetch-utils.cpp \
+gbtoolsPfetch.cpp \
+gbtoolsPfetch.hpp \
+gbtoolsPfetch_I.hpp \
+gbtoolsPfetch_P.hpp \
 $(NULL)  
-
-#gbtoolsPfetch_la_CFLAGS = -I$(top_srcdir)
 
 
 # This stuff generates the glib marshalling code to support
@@ -23,8 +21,8 @@ $(NULL)
 gbtoolsPfetch_la_marshal = gbtoolsPfetch-cmarshal.list
 
 gbtoolsPfetch_la_extra_sources = \
-gbtoolsPfetch-cmarshal.h \
-gbtoolsPfetch-cmarshal.c \
+gbtoolsPfetch-cmarshal.hpp \
+gbtoolsPfetch-cmarshal.cpp \
 $(NULL)
 
 nodist_libgbtoolsPfetch_la_SOURCES = $(gbtoolsPfetch_la_extra_sources)
@@ -45,9 +43,12 @@ MAINTAINERCLEANFILES = $(top_srcdir)/src/gbtoolsPfetch/Makefile.in
 
 
 
-.list.h:
+.list.hpp:
 	$(GENMARSHAL_COMMAND) --header $< >$@
+	perl -lne 's{G_BEGIN_DECLS}{}; print;' < $@ | perl -lne 's{G_END_DECLS}{}; print;' > $@.tmp_file
+	rm $@
+	mv $@.tmp_file $@
 
-.list.c:
+.list.cpp:
 	$(GENMARSHAL_COMMAND) --body $< >$@
 
