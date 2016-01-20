@@ -63,6 +63,8 @@ static void pfetch_handle_get_property(GObject *gobject,
 static void pfetch_handle_dispose (GObject *object);
 static void pfetch_handle_finalize (GObject *object);
 
+static void pfetch_get_argv(PFetchHandle handle, char *request, char **argv) ;
+
 
 static GObjectClass *base_parent_class_G = NULL;
 
@@ -443,6 +445,9 @@ static void pfetch_get_argv(PFetchHandle handle, char *request, char **argv)
 {
   int current = 0;
   argv[current++] = handle->location;
+
+  if (handle->opts.full)
+    argv[current++] = (char *)"-F" ;
 
   if(request != NULL)
     argv[current++] = request;
