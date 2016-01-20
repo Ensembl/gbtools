@@ -36,13 +36,9 @@ EXTRA_DIST = $(gbtoolsPfetch_la_marshal)
 
 GENMARSHAL_COMMAND = $(GLIB_GENMARSHAL) --prefix=gbtoolsPfetch_cmarshal
 
-
-# Extra files to remove for the maintainer-clean target.
+# gen-marshall generates C headers so we have to remove the the C++ guards from the header
+# so that normal C++ name mangling can occur.
 #
-MAINTAINERCLEANFILES = $(top_srcdir)/src/gbtoolsPfetch/Makefile.in
-
-
-
 .list.hpp:
 	$(GENMARSHAL_COMMAND) --header $< >$@
 	perl -lne 's{G_BEGIN_DECLS}{}; print;' < $@ | perl -lne 's{G_END_DECLS}{}; print;' > $@.tmp_file
@@ -51,4 +47,9 @@ MAINTAINERCLEANFILES = $(top_srcdir)/src/gbtoolsPfetch/Makefile.in
 
 .list.cpp:
 	$(GENMARSHAL_COMMAND) --body $< >$@
+
+
+# Extra files to remove for the maintainer-clean target.
+#
+MAINTAINERCLEANFILES = $(top_srcdir)/src/gbtoolsPfetch/Makefile.in
 
