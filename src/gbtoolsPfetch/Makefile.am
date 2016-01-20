@@ -45,6 +45,9 @@ MAINTAINERCLEANFILES = $(top_srcdir)/src/gbtoolsPfetch/Makefile.in
 
 .list.hpp:
 	$(GENMARSHAL_COMMAND) --header $< >$@
+	perl -lne 's{G_BEGIN_DECLS}{}; print;' < $@ | perl -lne 's{G_END_DECLS}{}; print;' > $@.tmp_file
+	rm $@
+	mv $@.tmp_file $@
 
 .list.cpp:
 	$(GENMARSHAL_COMMAND) --body $< >$@

@@ -46,7 +46,7 @@
 
 #include <gbtoolsPfetch_P.hpp>
 #include <gbtoolsPfetch_I.hpp>
-#include <gbtoolsPfetch-cmarshal.h>
+#include <gbtoolsPfetch-cmarshal.hpp>
 
 
 
