@@ -31,8 +31,10 @@
 #define _gbtools_h_included_
 
 
-#include <gbtools/gbtoolsUtils.hpp>
+#include <gbtools/gbtoolsCurl.hpp>
 #include <gbtools/gbtoolsGUI.hpp>
+#include <gbtools/gbtoolsPfetch.hpp>
+#include <gbtools/gbtoolsUtils.hpp>
 
 
 #endif /* _gbtools_h_included_ */
