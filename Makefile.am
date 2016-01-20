@@ -9,18 +9,16 @@ lib_LTLIBRARIES = libgbtools.la
 
 libgbtools_la_SOURCES = 
 
-
-# Temp....until I convert curl and pfetch to C++
-#libgbtools_la_LIBADD  = \
-#src/gbtoolsCurl/libgbtoolsCurl.la \
-#src/gbtoolsGUI/libgbtoolsGUI.la \
-#src/gbtoolsPfetch/libgbtoolsPfetch.la \
-#src/gbtoolsUtils/libgbtoolsUtils.la
-
 libgbtools_la_LIBADD  = \
+src/gbtoolsCurl/libgbtoolsCurl.la \
 src/gbtoolsGUI/libgbtoolsGUI.la \
+src/gbtoolsPfetch/libgbtoolsPfetch.la \
 src/gbtoolsUtils/libgbtoolsUtils.la
 
+# keep libtool up to date automatically.
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status libtool
 
 
 

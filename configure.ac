@@ -11,24 +11,14 @@ AM_INIT_AUTOMAKE([1.9 foreign])
 AC_CONFIG_HEADERS([config.h])
 
 
-# temp until I convert curl/pfetch to C++
-#AC_CONFIG_FILES([Makefile
-#src/Makefile
-#src/include/Makefile
-#src/gbtoolsUtils/Makefile
-#src/gbtoolsGUI/Makefile
-#src/gbtoolsCurl/Makefile
-#src/gbtoolsPfetch/Makefile
-#])
-
 AC_CONFIG_FILES([Makefile
 src/Makefile
 src/include/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
+src/gbtoolsCurl/Makefile
+src/gbtoolsPfetch/Makefile
 ])
-
-
 
 
 # Check if this is a Git repository and, if so, include info about the current
@@ -39,22 +29,27 @@ then AC_DEFINE_UNQUOTED([GBTOOLS_VERSION], ["`git describe --abbrev=1`"], ["gbto
 else AC_DEFINE([GBTOOLS_VERSION], [PACKAGE_VERSION], ["gbtools package version"])
 fi
 
-# libtool
-#LT_INIT()
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_PROG_LIBTOOL
+# superceeded by lt_init
+#AC_PROG_LIBTOOL
 
+LT_INIT([disable-shared])
+
+LT_LANG([C++])
+
+# keep libtool up to date automatically.
+AC_SUBST([LIBTOOL_DEPS])
 
 # Checks for programs.
 AC_PROG_CXX
-AC_PROG_CC
+#AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+#AC_PROG_RANLIB
 
 # Checks for libraries.
 
@@ -105,7 +100,7 @@ echo \
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION}
 
  Prefix: '${prefix}'
- Compiler: '${CC} ${CFLAGS} ${CPPFLAGS}'
+ Compiler: '${CXX} ${CFLAGS} ${CPPFLAGS}'
 
  Now type 'make @<:@<target>@:>@'
    where the optional @<:@<target>@:>@ is:

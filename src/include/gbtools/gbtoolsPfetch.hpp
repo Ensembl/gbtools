@@ -39,7 +39,7 @@ extern "C" {
 #include <glib.h>
 #include <glib-object.h>
 
-#include <gbtools/gbtoolsCurl.h>
+#include <gbtools/gbtoolsCurl.hpp>
 
 
 /*

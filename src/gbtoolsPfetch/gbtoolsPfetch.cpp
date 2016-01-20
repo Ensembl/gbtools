@@ -37,11 +37,15 @@
 #include <signal.h>		/* kill(), SIGKILL */
 #include <errno.h>
 #include <sys/wait.h>		/* WIFSIGNALED() */
+
+#ifdef ED_G_NEVER_INCLUDE_THIS_CODE
 #define __USE_XOPEN_EXTENDED
+#endif /* ED_G_NEVER_INCLUDE_THIS_CODE */
+
 #include <unistd.h>		/* getpgid(), setpgid()... needs __USE_XOPEN_EXTENDED and after something above... */
 
-#include <gbtoolsPfetch_P.h>
-#include <gbtoolsPfetch_I.h>
+#include <gbtoolsPfetch_P.hpp>
+#include <gbtoolsPfetch_I.hpp>
 #include <gbtoolsPfetch-cmarshal.h>
 
 
@@ -83,9 +87,9 @@ GType PFetchHandleGetType(void)
 	  (GInstanceInitFunc) pfetch_handle_init
 	};
 
-      pfetch_type = g_type_register_static(G_TYPE_OBJECT,
-					   "PFetchBaseHandle", 
-					   &pfetch_info, 0);
+      pfetch_type = (GTypeFlags)g_type_register_static(G_TYPE_OBJECT,
+                                                       "PFetchBaseHandle", 
+                                                       &pfetch_info, (GTypeFlags)0);
     }
 
   return pfetch_type;
@@ -96,7 +100,7 @@ PFetchHandle PFetchHandleNew(GType type)
 {
   PFetchHandle pfetch = NULL;
 
-  pfetch = g_object_new(type, NULL);
+  pfetch = (PFetchHandle)g_object_new(type, NULL);
 
   return pfetch;
 }
@@ -197,7 +201,7 @@ static void pfetch_handle_class_init(PFetchHandleClass pfetch_class)
   gobject_class = (GObjectClass *)pfetch_class;
   handle_class  = (PFetchHandleClass)pfetch_class;
 
-  base_parent_class_G = g_type_class_peek_parent(pfetch_class);
+  base_parent_class_G = (GObjectClass *)g_type_class_peek_parent(pfetch_class);
 
   gobject_class->set_property = pfetch_handle_set_property;
   gobject_class->get_property = pfetch_handle_get_property;
@@ -206,48 +210,48 @@ static void pfetch_handle_class_init(PFetchHandleClass pfetch_class)
 				  PFETCH_LOCATION, 
 				  g_param_spec_string("pfetch", "pfetch", 
 						      "where to find pfetch",
-						      "", PFETCH_PARAM_STATIC_RW));
+						      "", (GParamFlags)PFETCH_PARAM_STATIC_RW));
   g_object_class_install_property(gobject_class,
 				  PFETCH_FULL, 
 				  g_param_spec_boolean("full", "-F option", 
 						       "Return full database entry",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_ARCHIVE, 
 				  g_param_spec_boolean("archive", "-A option", 
 						       "Search EMBL and UniProtKB archive, including current data",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_UNIPROT_ISOFORM_SEQ, 
 				  g_param_spec_boolean("isoform-seq", "isoform-seq", 
 						       "Return the fasta entry for an isofrom as the -F entries don't exist.",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_BLIXEM_STYLE, 
 				  g_param_spec_boolean("blixem-seqs", "fetch like blixem wants", 
 						       "Return the sequences one per line with lower case dna and upper case AMINOACIDS",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_ONE_SEQ_PER_LINE, 
 				  g_param_spec_boolean("one-per-line", "-q option", 
 						       "Return the sequences one per line.",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_DNA_LOWER_AA_UPPER, 
 				  g_param_spec_boolean("case-by-type", "-C option", 
 						       "Return the fasta entry/sequences with lower case dna and upper case AMINOACIDS",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_DEBUG, 
 				  g_param_spec_boolean("debug", "debug", 
 						       "turn debugging on/off",
-						       FALSE, PFETCH_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   /* Signals */
   handle_class->handle_signals[HANDLE_READER_SIGNAL] =
@@ -544,7 +548,7 @@ GType PFetchHandlePipeGetType(void)
 
       pfetch_type = g_type_register_static(PFETCH_TYPE_HANDLE,
 					   "PFetchHandlePipe", 
-					   &pfetch_info, 0);
+					   &pfetch_info, (GTypeFlags)0);
     }
 
   return pfetch_type;
@@ -830,7 +834,11 @@ static gboolean pfetch_spawn_async_with_pipes(char *argv[], GIOFunc stdin_writer
     stderr_ptr = &stderr_fd;
 
   if(child_func)
-    flags |= G_SPAWN_DO_NOT_REAP_CHILD;
+
+#ifdef ED_G_NEVER_INCLUDE_THIS_CODE
+    flags |= (GSpawnFlags)G_SPAWN_DO_NOT_REAP_CHILD;
+#endif /* ED_G_NEVER_INCLUDE_THIS_CODE */
+  flags = (GSpawnFlags)(flags | G_SPAWN_DO_NOT_REAP_CHILD) ;
   else
     child_setup = NULL;
 
@@ -840,8 +848,8 @@ static gboolean pfetch_spawn_async_with_pipes(char *argv[], GIOFunc stdin_writer
 					stdout_ptr, stderr_ptr, 
 					&our_error)))
     {
-      GIOCondition read_cond  = G_IO_IN  | G_IO_HUP | G_IO_ERR | G_IO_NVAL;
-      GIOCondition write_cond = G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL;
+      GIOCondition read_cond  = (GIOCondition)(G_IO_IN  | G_IO_HUP | G_IO_ERR | G_IO_NVAL);
+      GIOCondition write_cond = (GIOCondition)(G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL);
 
       if(child_func && child_func_data && (child_func_data->watch_pid = child_pid))
 	child_func_data->watch_id = g_child_watch_add(child_pid, child_func, child_func_data);
@@ -876,7 +884,7 @@ static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc 
       GIOStatus status;
 
       if((status = g_io_channel_set_flags(io_channel, 
-					  (G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
+					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
 					  &flags_error)) == G_IO_STATUS_NORMAL)
 	{
 	  guint source_id;
@@ -1168,7 +1176,7 @@ GType PFetchHandleHttpGetType(void)
 
       pfetch_type = g_type_register_static(PFETCH_TYPE_HANDLE,
 					   "PFetchHttpHandle", 
-					   &pfetch_info, 0);
+					   &pfetch_info, (GTypeFlags)0);
     }
 
   return pfetch_type;
@@ -1225,19 +1233,19 @@ static void pfetch_http_handle_class_init(PFetchHandleHttpClass pfetch_class)
 				  g_param_spec_uint("port", "port",
 						    "pfetch port", 
 						    80, 65535,
-						    80, PFETCH_PARAM_STATIC_RW));
+						    80, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_COOKIE_JAR,
 				  g_param_spec_string("cookie-jar", "cookie-jar",
 						      "netscape cookie jar",
-						      "", PFETCH_PARAM_STATIC_RW));
+						      "", (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_PROXY,
 				  g_param_spec_string("proxy", "proxy",
 						      "pfetch proxy",
-						      "", PFETCH_PARAM_STATIC_RW));
+						      "", (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
 
 #ifdef DEBUG_DONT_INCLUDE
@@ -1469,7 +1477,7 @@ static size_t http_curl_write_func( void *ptr, size_t size, size_t nmemb, void *
 
   signal_return = emit_signal(PFETCH_HANDLE(stream),
 			      handle_class->handle_signals[HANDLE_READER_SIGNAL],
-			      detail, ptr, &actual_read, error);
+			      detail, (char *)ptr, &actual_read, error);
   
   if(signal_return == PFETCH_STATUS_OK)
     size_handled = actual_read;

@@ -1,9 +1,9 @@
 
 nobase_include_HEADERS = \
 gbtools/gbtools.hpp \
-gbtools/gbtoolsCurl.h \
+gbtools/gbtoolsCurl.hpp \
 gbtools/gbtoolsGUI.hpp \
-gbtools/gbtoolsPfetch.h \
+gbtools/gbtoolsPfetch.hpp \
 gbtools/gbtoolsUtils.hpp \
 $(NULL)
 

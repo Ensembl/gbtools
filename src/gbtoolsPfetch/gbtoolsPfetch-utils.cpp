@@ -29,8 +29,8 @@
  *-------------------------------------------------------------------
  */
 
-#include <gbtoolsPfetch_P.h>
-#include <gbtoolsPfetch_I.h>
+#include <gbtoolsPfetch_P.hpp>
+#include <gbtoolsPfetch_I.hpp>
 
 /* Public utility funcs */
 
@@ -104,7 +104,7 @@ PFetchStatus emit_signal(PFetchHandle handle,
 
 #undef HANDLE_N_PARAMS
 
-  default_status = g_value_get_enum(&sig_return);
+  default_status = (PFetchStatus)g_value_get_enum(&sig_return);
 
   return default_status;
 }

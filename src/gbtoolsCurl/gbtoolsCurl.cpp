@@ -32,7 +32,7 @@
 
 #include <unistd.h>
 
-#include <gbtoolsCurl_I.h>
+#include <gbtoolsCurl_I.hpp>
 
 #ifdef _WIN32
 #define SHORT_SLEEP Sleep(100)
@@ -156,7 +156,7 @@ GType CURLObjectGetType(void)
 
       curl_object_type = g_type_register_static(G_TYPE_OBJECT,
 						"cURL-wrapper-object", 
-						&curl_info, 0);
+						&curl_info, (GTypeFlags)0);
     }
 
   return curl_object_type;
@@ -167,7 +167,11 @@ GType CURLObjectGetType(void)
  */
 CURLObject CURLObjectNew()
 {
-  return g_object_new(CURL_TYPE_OBJECT, NULL);
+  CURLObject curl_obj = NULL ;
+
+  curl_obj = (CURLObject)g_object_new(CURL_TYPE_OBJECT, NULL);
+
+  return curl_obj ;
 }
 
 /*!
@@ -216,7 +220,7 @@ CURLObjectStatus CURLObjectPerform(CURLObject curl_object, gboolean use_multi)
 	      if(curl_object->allow_queue)
 		status = perform_later(curl_object, use_multi);
 	      else
-		status = 101; 	/* NO QUEUES and TRANSFER IN PROGRESS. */
+		status = (CURLObjectStatus)101; 	/* NO QUEUES and TRANSFER IN PROGRESS. */
 	    }
 	  else if(!g_queue_is_empty(curl_object->perform_queue))
 	    {
@@ -288,34 +292,34 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_VERBOSE,
 				  g_param_spec_boolean("verbose", "verbose",
 						       "The verbose information will be sent to stderr, or the stream set with CURLOPT_STDERR",
-						       TRUE, CURL_PARAM_STATIC_WO));
+						       TRUE, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_VERBOSE,
 				  g_param_spec_boolean("debug", "debug",
 						       "The verbose information will be sent to stderr, or the stream set with CURLOPT_STDERR",
-						       TRUE, CURL_PARAM_STATIC_WO));
+						       TRUE, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HEADER,
 				  g_param_spec_boolean("header", "header",
 						       "A non-zero parameter tells the library to include the header in the body output.",
-						       TRUE, CURL_PARAM_STATIC_WO));
+						       TRUE, (GParamFlags)CURL_PARAM_STATIC_WO));
   /* NOPROGRESS & NOSIGNAL not supported */
 
   /* --- Callback options --- */
   g_object_class_install_property(gobject_class, CURLOPT_WRITEFUNCTION,
 				  g_param_spec_pointer("writefunction", "writefunction",
 						       "Function called when data has been received",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_WRITEDATA,
 				  g_param_spec_pointer("writedata", "writedata",
 						       "User data passed to writefunction",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_READFUNCTION,
 				  g_param_spec_pointer("readfunction", "readfunction",
 						       "Function called when data can be sent",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_READDATA,
 				  g_param_spec_pointer("readdata", "readdata",
 						       "User data passed to readfunction",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
 
   /* CURLOPT_IOCTLFUNCTION, CURLOPT_IOCTLDATA, 
    * CURLOPT_SEEKFUNCTION, CURLOPT_SEEKDATA,
@@ -326,27 +330,27 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_PROGRESSFUNCTION,
 				  g_param_spec_pointer("progressfunction", "progressfunction",
 						       "Function called when data has been received",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_PROGRESSDATA,
 				  g_param_spec_pointer("progressdata", "progressdata",
 						       "User data passed to progressfunction",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HEADERFUNCTION,
 				  g_param_spec_pointer("headerfunction", "headerfunction",
 						       "Function called when header data has been received",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HEADERDATA,
 				  g_param_spec_pointer("headerdata", "headerdata",
 						       "User data passed to headerfunction",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_DEBUGFUNCTION,
 				  g_param_spec_pointer("debugfunction", "debugfunction",
 						       "Function called when debug data has been received",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_DEBUGDATA,
 				  g_param_spec_pointer("debugdata", "debugdata",
 						       "User data passed to debugfunction",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
 
   /* CURLOPT_SSL_CTX_FUNCTION, CURLOPT_SSL_CTX_DATA,
    * CURLOPT_CONV_TO_NETWORK_FUNCTION,
@@ -365,11 +369,11 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_URL,
 				  g_param_spec_string("url", "URL",
 						      "Uniform Resource Location",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_PORT,
 				  g_param_spec_uint("port", "port",
 						    "port",
-						    80, 65535, 80, CURL_PARAM_STATIC_WO));
+						    80, 65535, 80, (GParamFlags)CURL_PARAM_STATIC_WO));
 
   /* A whole load of other network options need adding */
 
@@ -381,69 +385,69 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_AUTOREFERER,
 				  g_param_spec_boolean("autoreferer", "autoreferer",
 						       "Add Referer: to redirect requests",
-						       FALSE, CURL_PARAM_STATIC_WO));
+						       FALSE, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_ENCODING,
 				  g_param_spec_string("encoding", "encoding",
 						      "Add Accept-Encoding: [identity|deflate|gzip]",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_FOLLOWLOCATION,
 				  g_param_spec_boolean("followlocation", "followlocation",
 						       "Follow any Location: headers",
-						       FALSE, CURL_PARAM_STATIC_WO));
+						       FALSE, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_POST,
 				  g_param_spec_boolean("post", "post",
 						       "Regular POST requesting",
-						       FALSE, CURL_PARAM_STATIC_WO));
+						       FALSE, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_POSTFIELDS,
 				  g_param_spec_pointer("postfields", "postfields",
 						       "POST data to send",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_POSTFIELDSIZE,
 				  g_param_spec_uint("postfieldsize", "postfieldsize",
 						    "Size of the POSTFIELDS", 
 						    0, 65535, 0,
-						    CURL_PARAM_STATIC_WO));
+						    (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HTTPPOST,
 				  g_param_spec_pointer("httppost", "httppost",
 						       "List of curl_httppost structs",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_REFERER,
 				  g_param_spec_string("referer", "referer", 
 						      "Referer: string", 
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_USERAGENT,
 				  g_param_spec_string("useragent", "useragent",
 						      "User-Agent: string",
 						      "libcurlobj-0.1",
-						      CURL_PARAM_STATIC_WO));
+						      (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HTTPHEADER,
 				  g_param_spec_pointer("httpheader", "httpheader",
 						       "curl_slist list of header strings",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HTTP200ALIASES,
 				  g_param_spec_pointer("http200aliases", "http200aliases",
 						       "curl_slist list of header 200 alias strings",
-						       CURL_PARAM_STATIC_WO));
+						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_COOKIE,
 				  g_param_spec_string("cookie", "cookie",
 						      "NAME=CONTENTS cookie string",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_COOKIEFILE,
 				  g_param_spec_string("cookiefile", "cookiefile",
 						      "Location of a Netscape/Mozilla format cookiefile.",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_COOKIEJAR,
 				  g_param_spec_string("cookiejar", "cookiejar",
 						      "Location for curl's cookiejar. Written when curl_easy_cleanup called",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_COOKIESESSION,
 				  g_param_spec_long("cookiesession", "cookiesession",
 						    "Start a new cookie session",
-						    0, 1, 0, CURL_PARAM_STATIC_WO));
+						    0, 1, 0, (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_PROXY,
 				  g_param_spec_string("proxy", "proxy",
 						      "proxy",
-						      "", CURL_PARAM_STATIC_WO));
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
 #ifdef COOKIELIST
   g_object_class_install_property(gobject_class, CURLOPT_COOKIELIST,
 				  g_param_spec_string("cookielist", "cookielist",
@@ -453,7 +457,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_HTTPGET,
 				  g_param_spec_boolean("httpget", "httpget",
 						       "Force easy handle to use GET request",
-						       TRUE, CURL_PARAM_STATIC_WO));
+						       TRUE, (GParamFlags)CURL_PARAM_STATIC_WO));
   /* --- FTP options --- */
   
   /* --- Protocol options --- */
@@ -462,7 +466,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOPT_TIMEOUT,
 				  g_param_spec_long("timeout", "timeout",
 						    "Timeout (uses SIGALRM unless nosignal set).",
-						    0, 65535, 0, CURL_PARAM_STATIC_WO));
+						    0, 65535, 0, (GParamFlags)CURL_PARAM_STATIC_WO));
   /* --- SSL options --- */
 
   /* --- SSH options --- */
@@ -476,19 +480,19 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   g_object_class_install_property(gobject_class, CURLOBJECT_MANAGE_POSTFIELDS,
 				  g_param_spec_boolean("manage-postfields", "Manage Postfields",
 						       "Free the POST data as soon as possible",
-						       FALSE, CURL_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)CURL_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class, CURLOBJECT_ALLOW_QUEUES,
 				  g_param_spec_boolean("allow-queues", "Allow queues",
 						       "Allow reuse of the curl handle, by queuing requests",
-						       FALSE, CURL_PARAM_STATIC_RW));
+						       FALSE, (GParamFlags)CURL_PARAM_STATIC_RW));
 
   /* CURLINFO data, only some implemented so far. _all_ Read-only */
 
   g_object_class_install_property(gobject_class, CURLOBJECT_RESPONSE_CODE,
 				  g_param_spec_long("response-code", "response-code",
 						    "The Response Code of the current request",
-						    0, 599, 200, CURL_PARAM_STATIC_RO));
+						    0, 599, 200, (GParamFlags)CURL_PARAM_STATIC_RO));
 
   /* Signals */
   curl_object_class->signals[CONNECTION_CLOSED_SIGNAL] =
@@ -563,7 +567,7 @@ static void curl_object_dispose(GObject *gobject)
 
   curl_class = CURL_OBJECT_GET_CLASS(gobject);
 
-  gobject_class = g_type_class_peek_parent(curl_class);
+  gobject_class = (GObjectClass *)g_type_class_peek_parent(curl_class);
 
   if(gobject_class->dispose)
     (* gobject_class->dispose)(gobject);
@@ -604,7 +608,7 @@ static void curl_object_finalize(GObject *gobject)
   if(curl_object->settings_to_destroy)
     {
       curl_object->settings_to_destroy =
-	destroy_settings_perform(curl_object->settings_to_destroy);
+	(GObjectClass*)destroy_settings_perform((curl_settings_perform_struct *)(curl_object->settings_to_destroy));
     }
 
   if(curl_object->manage_post_data &&
@@ -617,7 +621,7 @@ static void curl_object_finalize(GObject *gobject)
   /* Chain up.... */
   curl_class = CURL_OBJECT_GET_CLASS(gobject);
 
-  gobject_class = g_type_class_peek_parent(curl_class);
+  gobject_class = (GObjectClass*)g_type_class_peek_parent(curl_class);
 
   if(gobject_class->finalize)
     (* gobject_class->finalize)(gobject);
@@ -670,27 +674,27 @@ static void curl_object_set_property(GObject      *gobject,
 	    }
 
 	  curl_object->last_easy_status =
-	      curl_easy_setopt(curl_object->easy, param_id, str);
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, str);
 
 	  if(curl_object->debug == 1)
 	    g_warning("Setting param '%d' to '%s'", param_id, str);
 	}
       else if(G_IS_PARAM_SPEC_POINTER(pspec))
 	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, param_id, g_value_get_pointer(value));	
+	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_pointer(value));	
       else if(G_IS_PARAM_SPEC_BOOLEAN(pspec))
 	{
 	  curl_object->last_easy_status =
-	    curl_easy_setopt(curl_object->easy, param_id, g_value_get_boolean(value));
+	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_boolean(value));
 	  if(param_id == CURLOPT_VERBOSE)
 	    curl_object->debug = g_value_get_boolean(value);
 	}
       else if(G_IS_PARAM_SPEC_LONG(pspec))
 	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, param_id, g_value_get_long(value));
+	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_long(value));
       else if(G_IS_PARAM_SPEC_UINT(pspec))
 	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, param_id, g_value_get_uint(value));	
+	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_uint(value));	
       else
 	g_warning("Param id '%d' has unexpected ParamSpec.", param_id);
       break;
@@ -698,7 +702,7 @@ static void curl_object_set_property(GObject      *gobject,
       if(G_IS_PARAM_SPEC_POINTER(pspec))
 	{
 	  curl_object->last_easy_status =
-	    curl_easy_setopt(curl_object->easy, param_id, g_value_get_pointer(value));
+	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_pointer(value));
 	  curl_object->post_data_2_free = g_value_get_pointer(value);
 	}
       else
@@ -783,7 +787,7 @@ static gboolean curl_fd_to_watched_GIOChannel(gint         fd,
       GIOStatus status;
       
       if((status = g_io_channel_set_flags(io_channel, 
-					  (G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
+					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
 					  &flags_error)) == G_IO_STATUS_NORMAL)
 	{
 #ifdef CURL_SET_ENCODING
@@ -872,7 +876,7 @@ static void run_multi_perform(CURLObject curl_object)
       if((curl_object->last_easy_status == CURLE_OK) &&
          (curl_object->last_multi_status != CURLM_CALL_MULTI_PERFORM))
         {
-          GIOCondition write_cond = (G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL);
+          GIOCondition write_cond = (GIOCondition)(G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL);
           fd_set read_set, write_set, exc_set;
           int fd, fd_max;
 
@@ -918,7 +922,7 @@ static CURLObjectStatus perform_later(CURLObject curl_object, gboolean use_multi
   CURLObjectStatus status = CURL_STATUS_OK;
   curl_settings_perform details = NULL;
 
-  if(!(details = g_queue_peek_tail(curl_object->perform_queue)))
+  if (!(details = (curl_settings_perform)g_queue_peek_tail(curl_object->perform_queue)))
     {
       /* use previous... 
        * This will retry the previous easy handle completely unchanged... */
@@ -947,12 +951,12 @@ static void save_settings(CURLObject    curl_object,
     }
   else
     {
-      details = g_queue_peek_tail(curl_object->perform_queue);
+      details = (curl_settings_perform)g_queue_peek_tail(curl_object->perform_queue);
     }
 
   if((this_detail = g_new0(curl_settings_struct, 1)))
     {
-      this_detail->option = param_id;
+      this_detail->option = (CURLoption)param_id;
       this_detail->pspec  = g_param_spec_ref(pspec);
 
       g_value_init(&(this_detail->value), 
@@ -989,7 +993,7 @@ static void perform_next(CURLObject curl_object)
   curl_settings_perform details = NULL;
 
   if((curl_object->transfer_in_progress == FALSE) &&
-     (details = g_queue_pop_head(curl_object->perform_queue)) &&
+     (details = (curl_settings_perform)g_queue_pop_head(curl_object->perform_queue)) &&
      (details->perform_called == TRUE))
     {
       g_list_foreach(details->settings_list, invoke_set, curl_object);
@@ -1009,7 +1013,7 @@ static void transfer_finished_notify(gpointer user_data)
   if(curl_object->settings_to_destroy)
     {
       curl_object->settings_to_destroy =
-	destroy_settings_perform(curl_object->settings_to_destroy);
+	destroy_settings_perform((curl_settings_perform)(curl_object->settings_to_destroy));
     }
 
   curl_object->transfer_in_progress = FALSE;
