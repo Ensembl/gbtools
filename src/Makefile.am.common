@@ -1,0 +1,12 @@
+# Common includes for all compiles.....
+#
+
+AM_CPPFLAGS =  $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
+
+AM_CXXFLAGS = -std=c++0x -g -Wall
+
+# these don't work....or maybe they do...try again...???
+#libgbtools_la_CPPFLAGS =  $(DEPS_CFLAGS)
+#libgbtools_la_CXXFLAGS = -g  -Wall -std=c++0x
+
+

@@ -1,7 +1,7 @@
 
-SUBDIRS = .
+include $(top_srcdir)/src/Makefile.am.common
 
-AM_CPPFLAGS =  $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
+SUBDIRS = .
 
 noinst_LTLIBRARIES = libgbtoolsCurl.la
 
@@ -10,7 +10,6 @@ gbtoolsCurl.cpp \
 gbtoolsCurl.hpp \
 gbtoolsCurl_I.hpp \
 $(NULL) 
-
 
 # Extra files to remove for the maintainer-clean target.
 #

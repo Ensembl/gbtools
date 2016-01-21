@@ -1,7 +1,7 @@
 
-SUBDIRS = .
+include $(top_srcdir)/src/Makefile.am.common
 
-AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
+SUBDIRS = .
 
 noinst_LTLIBRARIES = libgbtoolsPfetch.la
 

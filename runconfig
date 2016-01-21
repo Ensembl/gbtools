@@ -40,9 +40,10 @@ else
 fi
 
 
-export CXXFLAGS='-std=c++0x -g'
-export LDFLAGS="-g $LDFLAGS"
-
+# It's possible to override settings from Makefile.am and configure.ac
+# by setting these two variables, e.g. export CXXFLAGS='-std=c++0x -g' etc.
+export CXXFLAGS=''
+export LDFLAGS=''
 
 
 # run the configure.......watch out for the quoting, sometimes we want the variable to

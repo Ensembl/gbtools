@@ -1,14 +1,9 @@
 
 SUBDIRS = src
 
-# these are not inherited so should they even be here ?
-#AM_CXXFLAGS = -g -Wall
-
-#AM_CPPFLAGS =  $(DEPS_CFLAGS)
-
 ACLOCAL_AMFLAGS = -I m4
 
-# Is this needed ?? Not sure....
+
 lib_LTLIBRARIES = libgbtools.la
 
 libgbtools_la_SOURCES = 
@@ -18,10 +13,6 @@ src/gbtoolsCurl/libgbtoolsCurl.la \
 src/gbtoolsGUI/libgbtoolsGUI.la \
 src/gbtoolsPfetch/libgbtoolsPfetch.la \
 src/gbtoolsUtils/libgbtoolsUtils.la
-
-# these don't work....
-#libgbtools_la_CPPFLAGS =  $(DEPS_CFLAGS)
-#libgbtools_la_CXXFLAGS = -g  -Wall -std=c++0x
 
 
 # keep libtool up to date automatically.
@@ -38,8 +29,6 @@ libtool: $(LIBTOOL_DEPS)
 # (see the automake manual, section "Libtool Convenience Libraries")
 #nodist_EXTRA_libexample_la_SOURCES = dummy.cpp
 #sourcescheck_DUMMY = dummy.cpp
-
-
 
 
 

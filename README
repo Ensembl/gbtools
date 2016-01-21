@@ -14,8 +14,18 @@ Authors:  Gemma Guest    <gb10@sanger.ac.uk>
           Ed Griffiths   <edgrif@sanger.ac.uk>
           Steve Miller   <sm23@sanger.ac.uk>
 
-Currently the package is compiled as C code but this should be changed to C++
-when time allows.
+
+Notes:
+
+The package is not compiled into a dynamic library but into an archive of .o
+files. As such there is no need to linking flags and other such macros as
+the code is compiled into .o files and then archived into a .a file.
+
+The Makefile.am and configure.ac setup follows an example from the web:
+
+https://www.gnu.org/software/automake/manual/html_node/Libtool-Convenience-Libraries.html
+
+it is hopefully about as simple as it can be.
 
 --------------------------------------------------------------------------------
 
