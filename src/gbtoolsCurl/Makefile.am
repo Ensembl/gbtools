@@ -7,7 +7,6 @@ noinst_LTLIBRARIES = libgbtoolsCurl.la
 
 libgbtoolsCurl_la_SOURCES = \
 gbtoolsCurl.cpp \
-gbtoolsCurl.hpp \
 gbtoolsCurl_I.hpp \
 $(NULL) 
 
