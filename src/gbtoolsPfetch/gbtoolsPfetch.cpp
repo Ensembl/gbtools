@@ -1252,6 +1252,24 @@ static void pfetch_http_handle_class_init(PFetchHandleHttpClass pfetch_class)
 						      "pfetch proxy",
 						      "", (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
+  g_object_class_install_property(gobject_class,
+				  PFETCH_IPRESOLVE,
+				  g_param_spec_long("ipresolve", "ipresolve",
+                                                    "Specify whether libcurl should use IPv4, IPv6, or either",
+                                                    0, 2, CURL_IPRESOLVE_WHATEVER,
+                                                    PFETCH_PARAM_STATIC_RW));
+  g_object_class_install_property(gobject_class,
+				  PFETCH_CAINFO,
+				  g_param_spec_string("cainfo", "cainfo",
+                                                      "Specify location of cainfo file",
+                                                      NULL, PFETCH_PARAM_STATIC_RW));
+
+  g_object_class_install_property(gobject_class,
+				  PFETCH_DEBUG,
+				  g_param_spec_boolean("verbose", "verbose",
+                                                       "Verbose output",
+                                                       FALSE, PFETCH_PARAM_STATIC_RW));
+
 
 #ifdef DEBUG_DONT_INCLUDE
   handle_class->reader = test_reader;
@@ -1389,42 +1407,27 @@ static PFetchStatus pfetch_http_fetch(PFetchHandle handle, char *request, GError
 
   if((pfetch->post_data = request))
     {
+      CURLObjectSet(pfetch->curl_object,
+                    /* general settings */
+                    "debug", PFETCH_HANDLE(pfetch)->opts.debug,
+                    "post",  TRUE,
+                    "url",   PFETCH_HANDLE(pfetch)->location,
+                    "port",  pfetch->http_port,
+                    "ipresolve", pfetch->ipresolve,
+                    "cainfo", pfetch->cainfo,
+                    /* request */
+                    "postfields",  pfetch->post_data,   
+                    "cookiefile",  pfetch->cookie_jar_location,
+                    /* functions */
+                    "writefunction",  http_curl_write_func,
+                    "writedata",      pfetch,
+                    "headerfunction", http_curl_header_func,
+                    "headerdata",     pfetch,
+                    /* end of options */
+                    NULL);
+
       if (pfetch->proxy)
-        CURLObjectSet(pfetch->curl_object,
-                      /* general settings */
-                      "debug", PFETCH_HANDLE(pfetch)->opts.debug,
-                      "post",  TRUE,
-                      "url",   PFETCH_HANDLE(pfetch)->location,
-                      "port",  pfetch->http_port,
-                      /* request */
-                      "postfields",  pfetch->post_data,   
-                      "cookiefile",  pfetch->cookie_jar_location,
-                      "proxy",  pfetch->proxy,
-                      /* functions */
-                      "writefunction",  http_curl_write_func,
-                      "writedata",      pfetch,
-                      "headerfunction", http_curl_header_func,
-                      "headerdata",     pfetch,
-                      /* end of options */
-                      NULL);
-      else
-        CURLObjectSet(pfetch->curl_object,
-                      /* general settings */
-                      "debug", PFETCH_HANDLE(pfetch)->opts.debug,
-                      "post",  TRUE,
-                      "url",   PFETCH_HANDLE(pfetch)->location,
-                      "port",  pfetch->http_port,
-                      /* request */
-                      "postfields",  pfetch->post_data,   
-                      "cookiefile",  pfetch->cookie_jar_location,
-                      /* functions */
-                      "writefunction",  http_curl_write_func,
-                      "writedata",      pfetch,
-                      "headerfunction", http_curl_header_func,
-                      "headerdata",     pfetch,
-                      /* end of options */
-                      NULL);
-        
+        CURLObjectSet(pfetch->curl_object, "proxy",  pfetch->proxy, NULL);
       
       pfetch->request_counter++;
       if(CURLObjectPerform(pfetch->curl_object, TRUE) == CURL_STATUS_FAILED)
