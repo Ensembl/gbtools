@@ -1257,18 +1257,18 @@ static void pfetch_http_handle_class_init(PFetchHandleHttpClass pfetch_class)
 				  g_param_spec_long("ipresolve", "ipresolve",
                                                     "Specify whether libcurl should use IPv4, IPv6, or either",
                                                     0, 2, CURL_IPRESOLVE_WHATEVER,
-                                                    PFETCH_PARAM_STATIC_RW));
+                                                    (GParamFlags)PFETCH_PARAM_STATIC_RW));
   g_object_class_install_property(gobject_class,
 				  PFETCH_CAINFO,
 				  g_param_spec_string("cainfo", "cainfo",
                                                       "Specify location of cainfo file",
-                                                      NULL, PFETCH_PARAM_STATIC_RW));
+                                                      NULL, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
   g_object_class_install_property(gobject_class,
 				  PFETCH_DEBUG,
 				  g_param_spec_boolean("verbose", "verbose",
                                                        "Verbose output",
-                                                       FALSE, PFETCH_PARAM_STATIC_RW));
+                                                       FALSE, (GParamFlags)PFETCH_PARAM_STATIC_RW));
 
 
 #ifdef DEBUG_DONT_INCLUDE
