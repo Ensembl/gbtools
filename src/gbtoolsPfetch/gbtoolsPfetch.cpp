@@ -452,7 +452,7 @@ static void pfetch_get_argv(PFetchHandle handle, char *request, char **argv)
   if(request != NULL)
     argv[current++] = request;
 
-  argv[current] = '\0';
+  argv[current] = NULL;
   
   return ;
 }
@@ -1299,6 +1299,11 @@ static void pfetch_http_handle_finalize(GObject *gobject)
 
   pfetch->proxy = NULL;
 
+  if(pfetch->cainfo)
+    g_free(pfetch->cainfo);
+
+  pfetch->cainfo = NULL;
+
   return ;
 }
 
@@ -1324,6 +1329,18 @@ static void pfetch_http_handle_set_property(GObject *gobject, guint param_id,
       
       pfetch->proxy = g_value_dup_string(value);
       break;
+    case PFETCH_CAINFO:
+      if(pfetch->cainfo)
+	g_free(pfetch->cainfo);
+      
+      pfetch->cainfo = g_value_dup_string(value);
+      break;
+    case PFETCH_IPRESOLVE:
+      pfetch->ipresolve = g_value_get_long(value);
+      break;
+    case PFETCH_VERBOSE:
+      pfetch->debug = g_value_get_boolean(value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, param_id, pspec);
       break;
@@ -1347,6 +1364,15 @@ static void pfetch_http_handle_get_property(GObject *gobject, guint param_id,
       break;
     case PFETCH_PROXY:
       g_value_set_string(value, pfetch->proxy);
+      break;
+    case PFETCH_CAINFO:
+      g_value_set_string(value, pfetch->cainfo);
+      break;
+    case PFETCH_IPRESOLVE:
+      g_value_set_long(value, pfetch->ipresolve);
+      break;
+    case PFETCH_VERBOSE:
+      g_value_set_boolean(value, pfetch->debug);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, param_id, pspec);
@@ -1446,10 +1472,11 @@ static PFetchStatus pfetch_http_fetch(PFetchHandle handle, char *request, GError
 		    "post",  TRUE,
 		    "url",   PFETCH_HANDLE(pfetch)->location,
 		    "port",  pfetch->http_port,
+		    "proxy",  pfetch->proxy,
+		    "cainfo",  pfetch->cainfo,
 		    /* request */
 		    "postfields",  pfetch->post_data,   
 		    "cookiefile",  pfetch->cookie_jar_location,
-		    "proxy",  pfetch->proxy,
 		    /* functions */
 		    "writefunction",  http_curl_write_func,
 		    "writedata",      pfetch,
