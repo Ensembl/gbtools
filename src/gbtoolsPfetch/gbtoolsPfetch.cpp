@@ -1149,6 +1149,7 @@ static PFetchStatus pfetch_http_fetch(PFetchHandle handle, char *request, GError
 static size_t http_curl_write_func (void *ptr, size_t size, size_t nmemb, void *stream);
 static size_t http_curl_header_func(void *ptr, size_t size, size_t nmemb, void *stream);
 
+static char *build_post_data(PFetchHandleHttp pfetch, char *sequence);
 static void conn_close_handler(CURLObject curl_object, PFetchHandleHttp pfetch);
 
 /* Public type function */
@@ -1400,12 +1401,12 @@ static void pfetch_http_handle_get_property(GObject *gobject, guint param_id,
   return ;
 }
 
-static PFetchStatus pfetch_http_fetch(PFetchHandle handle, char *request, GError **error)
+static PFetchStatus pfetch_http_fetch(PFetchHandle handle, char *sequence, GError **error)
 {
   PFetchHandleHttp pfetch = PFETCH_HTTP_HANDLE(handle);
   PFetchStatus     status = PFETCH_STATUS_OK;
 
-  if((pfetch->post_data = request))
+  if((pfetch->post_data = build_post_data(pfetch, sequence)))
     {
       CURLObjectSet(pfetch->curl_object,
                     /* general settings */
@@ -1533,6 +1534,40 @@ static size_t http_curl_header_func( void *ptr, size_t size, size_t nmemb, void 
   return size_handled;
 }
 /* end of curl functions */
+
+
+static char *build_post_data(PFetchHandleHttp pfetch, char *sequence)
+{
+  GString *post_string = NULL;
+  char *post = NULL;
+
+  if(sequence)
+    {
+      char *argv[256] = { '\0' };
+      char **argv_ptr = &argv[1];
+
+      post_string = g_string_sized_new(128);
+      
+      g_string_append_printf(post_string, "request=");
+      
+      pfetch_get_argv(PFETCH_HANDLE(pfetch), sequence, argv);
+
+      if(argv_ptr && *argv_ptr)
+	{
+	  while(argv_ptr && *argv_ptr)
+	    {
+	      g_string_append_printf(post_string, "%s ", *argv_ptr);
+	      argv_ptr++;
+	    }
+	}
+
+      post = g_string_free(post_string, FALSE);
+    }
+
+  return post;
+}
+
+
 
 
 static void conn_close_handler(CURLObject curl_object, PFetchHandleHttp pfetch)
