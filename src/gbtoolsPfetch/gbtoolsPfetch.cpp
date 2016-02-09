@@ -1543,7 +1543,8 @@ static char *build_post_data(PFetchHandleHttp pfetch, char *sequence)
 
   if(sequence)
     {
-      char *argv[256] = { '\0' };
+      char *tmp_str = g_strdup("\0");
+      char *argv[256] = { tmp_str };
       char **argv_ptr = &argv[1];
 
       post_string = g_string_sized_new(128);
@@ -1562,6 +1563,8 @@ static char *build_post_data(PFetchHandleHttp pfetch, char *sequence)
 	}
 
       post = g_string_free(post_string, FALSE);
+
+      g_free(tmp_str);
     }
 
   return post;
