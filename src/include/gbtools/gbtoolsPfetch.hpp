@@ -23,16 +23,12 @@
  * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
  *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *
- * Description: 
+ * Description: Object implementing fetching of sequence data via
+ *              the pfetch server either through a pipe to the
+ *              pfetch command line script or through http requests.
  *
- * Exported functions: See XXXXXXXXXXXXX.h
  *-------------------------------------------------------------------
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef __LIBPFETCH_H__
 #define __LIBPFETCH_H__
 
@@ -42,9 +38,22 @@ extern "C" {
 #include <gbtools/gbtoolsCurl.hpp>
 
 
+typedef enum
+  {
+    PFETCH_STATUS_OK,
+    PFETCH_STATUS_FAILED
+  } PFetchStatus;
+
+
+
 /*
- * Type checking and casting macros
+ * Base Pfetch object
  */
+
+typedef struct _pfetchHandleClassStruct  pfetchHandleClass, *PFetchHandleClass ;
+typedef struct _pfetchHandleStruct  pfetchHandle, *PFetchHandle ;
+
+GType PFetchHandleGetType(void) ;
 
 #define PFETCH_TYPE_HANDLE            (PFetchHandleGetType())
 #define PFETCH_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HANDLE, pfetchHandle))
@@ -55,55 +64,15 @@ extern "C" {
 #define PFETCH_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_HANDLE, pfetchHandleClass))
 
 
-typedef enum
-  {
-    PFETCH_STATUS_OK,
-    PFETCH_STATUS_FAILED
-  } PFetchStatus;
 
-
-/*
- * Main object structure
+/* 
+ * Derived Pfetch object using pipes to command line pfetch
  */
 
-/* synonyms for the private struct:
- *
- * PFetchHandle as a pointer for user coding like...
- * PFetchHandle new_handle = PFetchHandleNew(PFetchHandlePipeGetType());
- *
- * pfetchHandle for the Type checking/casting macros to work
- * PFETCH_HANDLE(obj) expands from
- * PFetchHandle new_handle = PFETCH_HANDLE(gobject);
- * ...to...
- * PFetchHandle new_handle = (pfetchHandle *)(blah_blah(gobject));
- * requirement is due to use of the * here ^. It's a macro thing.
- */
+typedef struct _pfetchHandlePipeClassStruct  pfetchHandlePipeClass, *PFetchHandlePipeClass ;
+typedef struct _pfetchHandlePipeStruct  pfetchHandlePipe, *PFetchHandlePipe ;
 
-typedef struct _pfetchHandleStruct  pfetchHandle, *PFetchHandle;
-
-/*
- * Class definition
- */
-
-typedef struct _pfetchHandleClassStruct  pfetchHandleClass, *PFetchHandleClass;
-
-
-/*
- * Public methods
- */
-
-GType PFetchHandleGetType(void);
-
-PFetchHandle  PFetchHandleNew            (GType type);
-PFetchStatus  PFetchHandleSettings       (PFetchHandle  pfetch, const gchar *first_arg_name, ...);
-PFetchStatus  PFetchHandleSettings_valist(PFetchHandle  pfetch, const gchar *first_arg_name, va_list args);
-  PFetchStatus  PFetchHandleFetch          (PFetchHandle  pfetch, char *sequence, GError **error);
-PFetchHandle  PFetchHandleDestroy        (PFetchHandle  pfetch);
-char* PFetchHandleHttpGetError(PFetchHandle *pfetch) ;
-
-
-
-/* Using pipe to command line client */
+GType PFetchHandlePipeGetType(void) ;
 
 #define PFETCH_TYPE_PIPE_HANDLE            (PFetchHandlePipeGetType())
 #define PFETCH_PIPE_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipe))
@@ -113,26 +82,16 @@ char* PFetchHandleHttpGetError(PFetchHandle *pfetch) ;
 #define PFETCH_IS_PIPE_HANDLE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_PIPE_HANDLE))
 #define PFETCH_PIPE_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipeClass))
 
+
+
 /* 
- * Main Object structure
+ * Derived Pfetch object using direct http requests to pfetch server
  */
 
-typedef struct _pfetchHandlePipeStruct  pfetchHandlePipe, *PFetchHandlePipe;
+typedef struct _pfetchHandleHttpClassStruct  pfetchHandleHttpClass, *PFetchHandleHttpClass ;
+typedef struct _pfetchHandleHttpStruct  pfetchHandleHttp, *PFetchHandleHttp ;
 
-typedef struct _pfetchHandlePipeClassStruct  pfetchHandlePipeClass, *PFetchHandlePipeClass;
-
-GType PFetchHandlePipeGetType(void);
-
-
-/* Over http... */
-
-
-/* Object */
-typedef struct _pfetchHandleHttpStruct  pfetchHandleHttp, *PFetchHandleHttp;
-
-/* Class */
-typedef struct _pfetchHandleHttpClassStruct  pfetchHandleHttpClass, *PFetchHandleHttpClass;
-
+GType PFetchHandleHttpGetType(void) ;
 
 #define PFETCH_TYPE_HTTP_HANDLE            (PFetchHandleHttpGetType ())
 #define PFETCH_HTTP_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttp))
@@ -143,7 +102,16 @@ typedef struct _pfetchHandleHttpClassStruct  pfetchHandleHttpClass, *PFetchHandl
 #define PFETCH_HTTP_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttpClass))
 
 
-GType PFetchHandleHttpGetType(void);
+
+// Object functions available for all Pfetch object types.
+
+PFetchHandle PFetchHandleNew(GType type);
+PFetchStatus PFetchHandleSettings(PFetchHandle  pfetch, const gchar *first_arg_name, ...);
+PFetchStatus PFetchHandleSettings_valist(PFetchHandle  pfetch, const gchar *first_arg_name, va_list args);
+PFetchStatus PFetchHandleFetch(PFetchHandle  pfetch, char *sequence, GError **error);
+char* PFetchHandleHttpGetError(PFetchHandle *pfetch) ;
+PFetchHandle PFetchHandleDestroy(PFetchHandle  pfetch);
+
 
 
 /*
@@ -156,7 +124,3 @@ GType PFetchHandleStatusGetType (void);
 
 
 #endif /* __LIBPFETCH_H__ */
-
-#ifdef __cplusplus
-}
-#endif

@@ -23,16 +23,10 @@
  * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
  *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *
- * Description: 
+ * Description: Object providing an interface to the curl library.
  *
- * Exported functions: See XXXXXXXXXXXXX.h
  *-------------------------------------------------------------------
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef CURL_OBJ_H
 #define CURL_OBJ_H
 
@@ -77,7 +71,3 @@ CURLObjectStatus CURLObjectErrorMessage(CURLObject curl_object, char **message);
 CURLObject       CURLObjectDestroy     (CURLObject curlobject);
 
 #endif	/* CURL_OBJ_H */
-
-#ifdef __cplusplus
-}
-#endif

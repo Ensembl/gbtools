@@ -26,7 +26,6 @@
  * Description: Miscellaneous GUI functions
  *----------------------------------------------------------------------------
  */
-
 #ifndef _gbtoolsGUI_h_included_
 #define _gbtoolsGUI_h_included_
 

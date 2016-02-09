@@ -45,7 +45,6 @@
 #include <unistd.h>		/* getpgid(), setpgid()... needs __USE_XOPEN_EXTENDED and after something above... */
 
 #include <gbtoolsPfetch_P.hpp>
-#include <gbtoolsPfetch_I.hpp>
 #include <gbtoolsPfetch-cmarshal.hpp>
 
 
@@ -86,7 +85,8 @@ GType PFetchHandleGetType(void)
 	  NULL,			/* class_data */
 	  sizeof(pfetchHandle),
 	  0,			/* n_preallocs */
-	  (GInstanceInitFunc) pfetch_handle_init
+	  (GInstanceInitFunc) pfetch_handle_init,
+          NULL                                              // value_table
 	};
 
       pfetch_type = (GTypeFlags)g_type_register_static(G_TYPE_OBJECT,
@@ -548,7 +548,8 @@ GType PFetchHandlePipeGetType(void)
 	  NULL,			/* class_data */
 	  sizeof(pfetchHandlePipe),
 	  0,			/* n_preallocs */
-	  (GInstanceInitFunc) pfetch_pipe_handle_init
+	  (GInstanceInitFunc) pfetch_pipe_handle_init,
+          NULL                                              // value_table
 	};
 
       pfetch_type = g_type_register_static(PFETCH_TYPE_HANDLE,
@@ -1177,7 +1178,8 @@ GType PFetchHandleHttpGetType(void)
 	  NULL,			/* class_data */
 	  sizeof(pfetchHandleHttp),
 	  0,			/* n_preallocs */
-	  (GInstanceInitFunc) pfetch_http_handle_init
+	  (GInstanceInitFunc) pfetch_http_handle_init,
+          NULL                                              // value_table
 	};
 
       pfetch_type = g_type_register_static(PFETCH_TYPE_HANDLE,

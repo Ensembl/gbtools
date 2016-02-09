@@ -8,7 +8,6 @@ noinst_LTLIBRARIES = libgbtoolsPfetch.la
 libgbtoolsPfetch_la_SOURCES = \
 gbtoolsPfetch-utils.cpp \
 gbtoolsPfetch.cpp \
-gbtoolsPfetch_I.hpp \
 gbtoolsPfetch_P.hpp \
 $(NULL)  
 
