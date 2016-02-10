@@ -29,17 +29,9 @@
 #ifndef gbtools_h_included
 #define gbtools_h_included
 
-namespace gbtools
-{
-
-
 #include <gbtools/gbtoolsCurl.hpp>
 #include <gbtools/gbtoolsGUI.hpp>
 #include <gbtools/gbtoolsPfetch.hpp>
 #include <gbtools/gbtoolsUtils.hpp>
-
-
-} /* gbtools namespace */
-
 
 #endif /* gbtools_h_included */
