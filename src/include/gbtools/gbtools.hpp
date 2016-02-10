@@ -26,9 +26,11 @@
  * Description: Contains all exported gbtools functions
  *----------------------------------------------------------------------------
  */
+#ifndef gbtools_h_included
+#define gbtools_h_included
 
-#ifndef _gbtools_h_included_
-#define _gbtools_h_included_
+namespace gbtools
+{
 
 
 #include <gbtools/gbtoolsCurl.hpp>
@@ -37,4 +39,7 @@
 #include <gbtools/gbtoolsUtils.hpp>
 
 
-#endif /* _gbtools_h_included_ */
+} /* gbtools namespace */
+
+
+#endif /* gbtools_h_included */

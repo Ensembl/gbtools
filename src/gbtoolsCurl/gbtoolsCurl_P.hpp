@@ -1,4 +1,4 @@
-/*  File: libcurlobject_I.h
+/*  File: gbtoolsCurl_P.h
  *  Author: Roy Storey (rds@sanger.ac.uk)
  *  Copyright (c) 2006-2015: Genome Research Ltd.
  *-------------------------------------------------------------------
@@ -28,9 +28,14 @@
  *
  *-------------------------------------------------------------------
  */
+#ifndef GBTOOLS_CURL_P_H
+#define GBTOOLS_CURL_P_H
 
 #include <gbtools/gbtoolsCurl.hpp>
 
+
+namespace gbtools
+{
 
 #define CURL_PARAM_STATIC    (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
 #define CURL_PARAM_STATIC_RO (CURL_PARAM_STATIC | G_PARAM_READABLE)
@@ -82,3 +87,10 @@ typedef struct _curlObjectClassStruct
   guint signals[LAST_SIGNAL];
 
 } curlObjectClassStruct;
+
+
+
+} /* gbtools namespace */
+
+
+#endif /* GBTOOLS_CURL_P_H */

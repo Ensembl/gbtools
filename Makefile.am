@@ -45,10 +45,10 @@ $(top_srcdir)/config.h.in~ \
 $(top_srcdir)/configure \
 $(top_srcdir)/gbtools_version.m4
 
-GENERATED_FILES = $(top_srcdir)/config $(top_srcdir)/m4
+GENERATED_DIRS = $(top_srcdir)/config $(top_srcdir)/m4 $(top_srcdir)/.deps $(top_srcdir)/build/src
 
 maintainer-clean-local:
-	rm -rf $(GENERATED_FILES) $(top_srcdir)/.deps
+	rm -rf $(GENERATED_DIRS)
 	mkdir $(top_srcdir)/m4 $(top_srcdir)/config
 
 

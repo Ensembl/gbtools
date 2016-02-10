@@ -27,12 +27,15 @@
  *
  *-------------------------------------------------------------------
  */
-#ifndef CURL_OBJ_H
-#define CURL_OBJ_H
+#ifndef GBTOOLS_CURL_H
+#define GBTOOLS_CURL_H
 
 #include <glib.h>
 #include <glib-object.h>
 #include <curl/curl.h>
+
+namespace gbtools
+{
 
 
 #define CURL_TYPE_OBJECT            (CURLObjectGetType())
@@ -70,4 +73,7 @@ CURLObjectStatus CURLObjectPerform     (CURLObject curlobject, gboolean use_mult
 CURLObjectStatus CURLObjectErrorMessage(CURLObject curl_object, char **message);
 CURLObject       CURLObjectDestroy     (CURLObject curlobject);
 
-#endif	/* CURL_OBJ_H */
+
+} /* gbtools namespace */
+
+#endif	/* GBTOOLS_CURL_H */

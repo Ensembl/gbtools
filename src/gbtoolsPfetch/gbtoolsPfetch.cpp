@@ -23,30 +23,27 @@
  * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
  *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *
- * Description: 
+ * Description: object interface to pfetch server via a pipe to
+ *              the pfetch client or via http direct to the pfetch
+ *              server.
  *
- * Exported functions: See XXXXXXXXXXXXX.h
+ * Exported functions: See gbtools/gbtoolsPfetch.hpp
  *-------------------------------------------------------------------
  */
-
-#define LIBPFETCH_READY 1
-#ifdef LIBPFETCH_READY
-
 
 #include <string.h>
 #include <signal.h>		/* kill(), SIGKILL */
 #include <errno.h>
 #include <sys/wait.h>		/* WIFSIGNALED() */
-
-#ifdef ED_G_NEVER_INCLUDE_THIS_CODE
-#define __USE_XOPEN_EXTENDED
-#endif /* ED_G_NEVER_INCLUDE_THIS_CODE */
-
 #include <unistd.h>		/* getpgid(), setpgid()... needs __USE_XOPEN_EXTENDED and after something above... */
+
 
 #include <gbtoolsPfetch_P.hpp>
 #include <gbtoolsPfetch-cmarshal.hpp>
 
+
+namespace gbtools
+{
 
 
 static void pfetch_handle_class_init(PFetchHandleClass pfetch_class);
@@ -66,6 +63,8 @@ static void pfetch_get_argv(PFetchHandle handle, char *request, char **argv) ;
 
 
 static GObjectClass *base_parent_class_G = NULL;
+
+
 
 /* Public functions. */
 
@@ -1593,4 +1592,6 @@ static void conn_close_handler(CURLObject curl_object, PFetchHandleHttp pfetch)
 }
 
 
-#endif /* LIBPFETCH_READY */
+
+} /* gbtools namespace */
+

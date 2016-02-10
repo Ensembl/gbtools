@@ -7,7 +7,7 @@ noinst_LTLIBRARIES = libgbtoolsCurl.la
 
 libgbtoolsCurl_la_SOURCES = \
 gbtoolsCurl.cpp \
-gbtoolsCurl_I.hpp \
+gbtoolsCurl_P.hpp \
 $(NULL) 
 
 # Extra files to remove for the maintainer-clean target.

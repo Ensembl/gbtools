@@ -23,13 +23,21 @@
  * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
  *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *
- * Description: 
+ * Description: utilities, in truth this is hardly developed and
+ *              could be removed.
  *
- * Exported functions: See XXXXXXXXXXXXX.h
+ * Exported functions: See gbtools/gbtoolsPfetch.hpp
  *-------------------------------------------------------------------
  */
 
 #include <gbtoolsPfetch_P.hpp>
+
+
+
+namespace gbtools
+{
+
+
 
 
 /* Public utility funcs */
@@ -108,3 +116,10 @@ PFetchStatus emit_signal(PFetchHandle handle,
 
   return default_status;
 }
+
+
+
+
+
+} /* gbtools namespace */
+

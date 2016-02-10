@@ -38,6 +38,10 @@
 #include <gbtools/gbtoolsCurl.hpp>
 
 
+namespace gbtools
+{
+
+
 typedef enum
   {
     PFETCH_STATUS_OK,
@@ -121,6 +125,9 @@ PFetchHandle PFetchHandleDestroy(PFetchHandle  pfetch);
 #define PFETCH_TYPE_HANDLE_STATUS          (PFetchHandleStatusGetType())
 
 GType PFetchHandleStatusGetType (void);
+
+
+} /* gbtools namespace */
 
 
 #endif /* __LIBPFETCH_H__ */

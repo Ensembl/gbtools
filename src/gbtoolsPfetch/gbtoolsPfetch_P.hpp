@@ -27,11 +27,13 @@
  *
  *-------------------------------------------------------------------
  */
-#ifndef __LIBPFETCH_I_H__
-#define __LIBPFETCH_I_H__
+#ifndef GBTOOLS_PFETCH_P_H
+#define GBTOOLS_PFETCH_P_H
 
 #include <gbtools/gbtoolsPfetch.hpp>
 
+namespace gbtools
+{
 
 
 #define PFETCH_PARAM_STATIC (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
@@ -197,8 +199,6 @@ typedef struct _pfetchHandleHttpStruct
 
 
 
-
-
 PFetchStatus emit_signal(PFetchHandle handle,
 			 guint        signal_id,
 			 GQuark       detail,
@@ -207,4 +207,8 @@ PFetchStatus emit_signal(PFetchHandle handle,
 			 GError      *error);
 
 
-#endif /* __LIBPFETCH_I_H__ */
+
+} /* gbtools namespace */
+
+
+#endif /* GBTOOLS_PFETCH_P_H */

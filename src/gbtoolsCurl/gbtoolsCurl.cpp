@@ -23,16 +23,19 @@
  * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
  *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *
- * Description: 
+ * Description: Object to access curl send/receive http requests.
  *
- * Exported functions: See XXXXXXXXXXXXX.h
  *-------------------------------------------------------------------
  */
 
-
 #include <unistd.h>
 
-#include <gbtoolsCurl_I.hpp>
+#include <gbtoolsCurl_P.hpp>
+
+
+namespace gbtools
+{
+
 
 #ifdef _WIN32
 #define SHORT_SLEEP Sleep(100)
@@ -1102,4 +1105,8 @@ static int curl_object_progress_func(void *clientp,
 #endif /* NEEDS_PROGRESS */
 
 
+
+
+
+} /* gbtools namespace */
 
