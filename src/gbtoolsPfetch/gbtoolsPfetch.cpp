@@ -1550,7 +1550,8 @@ static char *build_post_data(PFetchHandleHttp pfetch, char *sequence)
 
       post_string = g_string_sized_new(128);
       
-      g_string_append_printf(post_string, "request=");
+      if (!(strstr(sequence, "request=")))
+        g_string_append_printf(post_string, "request=");
       
       pfetch_get_argv(PFETCH_HANDLE(pfetch), sequence, argv);
 
