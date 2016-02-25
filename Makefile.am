@@ -14,6 +14,8 @@ src/gbtoolsGUI/libgbtoolsGUI.la \
 src/gbtoolsPfetch/libgbtoolsPfetch.la \
 src/gbtoolsUtils/libgbtoolsUtils.la
 
+libgbtools_CXXFLAGS = -std=c++0x -g -Wall
+
 
 # keep libtool up to date automatically.
 LIBTOOL_DEPS = @LIBTOOL_DEPS@

@@ -1,5 +1,5 @@
-/*  File: libpfetch.h
- *  Author: Roy Storey (rds@sanger.ac.uk)
+/*  File: gbtoolsPfetch.hpp
+ *  Author: Ed Griffiths (edgrif@sanger.ac.uk)
  *  Copyright (c) 2006-2015: Genome Research Ltd.
  *-------------------------------------------------------------------
  * ZMap is free software; you can redistribute it and/or
@@ -29,105 +29,146 @@
  *
  *-------------------------------------------------------------------
  */
-#ifndef __LIBPFETCH_H__
-#define __LIBPFETCH_H__
+#ifndef GBTOOLS_PFETCH_H
+#define GBTOOLS_PFETCH_H
 
 #include <glib.h>
-#include <glib-object.h>
 
 #include <gbtools/gbtoolsCurl.hpp>
 
 
 namespace gbtools
 {
+  class Pfetch ;
+
+  // Callback functions.
+  typedef bool (* ReaderFunc)(char *output, guint *output_size, char **error_msg,
+                              void *user_data) ;
+
+  typedef bool (* ErrorFunc)(char *output, guint *output_size, char **error_msg,
+                             void *user_data) ;
+
+  typedef void (* ClosedFunc)(void *user_data) ;
 
 
-typedef enum
+
+  // Abstract base class.
+  class Pfetch
   {
-    PFETCH_STATUS_OK,
-    PFETCH_STATUS_FAILED
-  } PFetchStatus;
+  public:
+
+    void setEntryType(bool full_entry) ;
+
+    void setDebug(bool debug_on) ;
+
+    virtual bool fetch(const char *sequence, char **error_msg) = 0 ;
+
+    const char* getLocation() ;
+
+    virtual ~Pfetch() ;
+
+  protected:
+
+    Pfetch(const char *location,
+           ReaderFunc reader_func, ErrorFunc error_func, ClosedFunc closed_func,
+           void *user_data) ;
+
+    const char *location_ ;
+
+    struct
+    {
+      unsigned int full    : 1 ;	/* full pfetch entry (-F on command line) */
+      unsigned int debug   : 1 ;	/* internal debug */
+    } opts_ ;
+
+    // user callbacks
+    ReaderFunc reader_func_ ;
+    ErrorFunc error_func_ ;
+    ClosedFunc closed_func_ ;
+    void *user_data_ ;
+
+  private:
 
 
-
-/*
- * Base Pfetch object
- */
-
-typedef struct _pfetchHandleClassStruct  pfetchHandleClass, *PFetchHandleClass ;
-typedef struct _pfetchHandleStruct  pfetchHandle, *PFetchHandle ;
-
-GType PFetchHandleGetType(void) ;
-
-#define PFETCH_TYPE_HANDLE            (PFetchHandleGetType())
-#define PFETCH_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HANDLE, pfetchHandle))
-#define PFETCH_HANDLE_CONST(obj)      (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HANDLE, pfetchHandle const))
-#define PFETCH_HANDLE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_HANDLE, pfetchHandleClass))
-#define PFETCH_IS_HANDLE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), PFETCH_TYPE_HANDLE))
-#define PFETCH_IS_HANDLE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_HANDLE))
-#define PFETCH_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_HANDLE, pfetchHandleClass))
+  } ;
 
 
+  // Pipe interface
+  //
+  class PfetchPipe: public Pfetch
+  {
+  public:
 
-/* 
- * Derived Pfetch object using pipes to command line pfetch
- */
+    // No default contstructor.
+    PfetchPipe() = delete ;
 
-typedef struct _pfetchHandlePipeClassStruct  pfetchHandlePipeClass, *PFetchHandlePipeClass ;
-typedef struct _pfetchHandlePipeStruct  pfetchHandlePipe, *PFetchHandlePipe ;
+    // No copy operations
+    PfetchPipe(const PfetchPipe&) = delete ;
+    PfetchPipe& operator=(const PfetchPipe&) = delete ;
 
-GType PFetchHandlePipeGetType(void) ;
+    // no move operations
+    PfetchPipe(PfetchPipe&&) = delete ;
+    PfetchPipe& operator=(PfetchPipe&&) = delete ;
 
-#define PFETCH_TYPE_PIPE_HANDLE            (PFetchHandlePipeGetType())
-#define PFETCH_PIPE_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipe))
-#define PFETCH_PIPE_HANDLE_CONST(obj)      (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipe const))
-#define PFETCH_PIPE_HANDLE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipeClass))
-#define PFETCH_IS_PIPE_HANDLE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), PFETCH_TYPE_PIPE_HANDLE))
-#define PFETCH_IS_PIPE_HANDLE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_PIPE_HANDLE))
-#define PFETCH_PIPE_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_PIPE_HANDLE, pfetchHandlePipeClass))
+    PfetchPipe(const char *location,
+               ReaderFunc reader_func, ErrorFunc error_func, ClosedFunc closed_func,
+               void *user_data) ;
 
+    bool fetch(const char *sequence, char **error_msg) ;
 
+    ~PfetchPipe() ;
 
-/* 
- * Derived Pfetch object using direct http requests to pfetch server
- */
+  private:
 
-typedef struct _pfetchHandleHttpClassStruct  pfetchHandleHttpClass, *PFetchHandleHttpClass ;
-typedef struct _pfetchHandleHttpStruct  pfetchHandleHttp, *PFetchHandleHttp ;
-
-GType PFetchHandleHttpGetType(void) ;
-
-#define PFETCH_TYPE_HTTP_HANDLE            (PFetchHandleHttpGetType ())
-#define PFETCH_HTTP_HANDLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttp))
-#define PFETCH_HTTP_HANDLE_CONST(obj)      (G_TYPE_CHECK_INSTANCE_CAST((obj), PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttp const))
-#define PFETCH_HTTP_HANDLE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttpClass))
-#define PFETCH_IS_HTTP_HANDLE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), PFETCH_TYPE_HTTP_HANDLE))
-#define PFETCH_IS_HTTP_HANDLE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass),  PFETCH_TYPE_HTTP_HANDLE))
-#define PFETCH_HTTP_HANDLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj),  PFETCH_TYPE_HTTP_HANDLE, pfetchHandleHttpClass))
+  } ;
 
 
+  // http interface
+  //
+  class PfetchHttp: public Pfetch
+  {
+  public:
 
-// Object functions available for all Pfetch object types.
+    // No default contstructor.
+    PfetchHttp() = delete ;
 
-PFetchHandle PFetchHandleNew(GType type);
-PFetchStatus PFetchHandleSettings(PFetchHandle  pfetch, const gchar *first_arg_name, ...);
-PFetchStatus PFetchHandleSettings_valist(PFetchHandle  pfetch, const gchar *first_arg_name, va_list args);
-PFetchStatus PFetchHandleFetch(PFetchHandle  pfetch, char *sequence, GError **error);
-char* PFetchHandleHttpGetError(PFetchHandle *pfetch) ;
-PFetchHandle PFetchHandleDestroy(PFetchHandle  pfetch);
+    // No copy operations
+    PfetchHttp(const PfetchHttp&) = delete ;
+    PfetchHttp& operator=(const PfetchHttp&) = delete ;
 
+    // no move operations
+    PfetchHttp(PfetchHttp&&) = delete ;
+    PfetchHttp& operator=(PfetchHttp&&) = delete ;
 
+    PfetchHttp(const char *location, unsigned int port,
+               const char* cookie_jar, long ipresolve, const char *cainfo, char *proxy,
+               ReaderFunc reader_func, ErrorFunc error_func, ClosedFunc closed_func,
+               void *user_data) ;
 
-/*
- * Public utility functions...
- */
+    void setProxy(const char *proxy) ;
 
-#define PFETCH_TYPE_HANDLE_STATUS          (PFetchHandleStatusGetType())
+    char* getError() ;
 
-GType PFetchHandleStatusGetType (void);
+    bool fetch(const char *sequence, char **error_msg) ;
+
+    ~PfetchHttp() ;
+
+  private:
+
+    unsigned int http_port_;
+    const char *cookie_jar_location_;
+    long ipresolve_;
+    const char *cainfo_;
+    const  char *proxy_ ;
+
+    CURLObject curl_object_;
+    unsigned int request_counter_;
+
+  } ;
+
 
 
 } /* gbtools namespace */
 
 
-#endif /* __LIBPFETCH_H__ */
+#endif /* GBTOOLS_PFETCH_H */
