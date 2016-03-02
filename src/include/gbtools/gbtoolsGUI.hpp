@@ -26,9 +26,8 @@
  * Description: Miscellaneous GUI functions
  *----------------------------------------------------------------------------
  */
-
-#ifndef _gbtoolsGUI_h_included_
-#define _gbtoolsGUI_h_included_
+#ifndef gbtoolsGUI_h_included
+#define gbtoolsGUI_h_included
 
 #include <gbtools/gbtoolsUtils.hpp>
 #include <gtk/gtk.h>
@@ -42,4 +41,4 @@ gboolean GUIGetTrueMonitorSizeFraction(GtkWidget *widget, const double widthFrac
 
 } /* gbtools namespace */
 
-#endif /* _gbtoolsGUI_h_included_ */
+#endif /* gbtoolsGUI_h_included */

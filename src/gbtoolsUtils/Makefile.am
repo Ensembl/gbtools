@@ -1,13 +1,11 @@
 
+include $(top_srcdir)/src/Makefile.am.common
+
 SUBDIRS = .
 
-noinst_LIBRARIES = libgbtoolsUtils.a
+noinst_LTLIBRARIES = libgbtoolsUtils.la
 
-AM_CPPFLAGS = -g -Wall $(DEPS_CFLAGS) -I$(top_srcdir)/src/include
-
-libgbtoolsUtils_a_SOURCES = gbtoolsUtils.cpp
-libgbtoolsUtils_a_LIBADD  = 
-libgbtoolsUtils_a_CFLAGS  = 
+libgbtoolsUtils_la_SOURCES = gbtoolsUtils.cpp
 
 # Extra files to remove for the maintainer-clean target.
 #

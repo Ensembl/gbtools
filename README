@@ -1,0 +1,31 @@
+--------------------------------------------------------------------------------
+                              The gbtools Package
+
+gbtools (Genome Browser tools) is a library of common routines used by both
+seqtools and zmap. It includes routines for graphics, curl and utilities.
+
+Note that the library is not intended to be distributed on its own but as part
+of seqtools or zmap and hence may not include all the necessary
+licensing/copyright notices required by Sanger. If this package is to be
+distributed separately then these notices should be added following whatever
+Sanger software guidelines are prevalent at that time.
+
+Authors:  Gemma Guest    <gb10@sanger.ac.uk> 
+          Ed Griffiths   <edgrif@sanger.ac.uk>
+          Steve Miller   <sm23@sanger.ac.uk>
+
+
+Notes:
+
+The package is not compiled into a dynamic library but into an archive of .o
+files. As such there is no need to linking flags and other such macros as
+the code is compiled into .o files and then archived into a .a file.
+
+The Makefile.am and configure.ac setup follows an example from the web:
+
+https://www.gnu.org/software/automake/manual/html_node/Libtool-Convenience-Libraries.html
+
+it is hopefully about as simple as it can be.
+
+--------------------------------------------------------------------------------
+

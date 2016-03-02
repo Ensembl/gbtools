@@ -1,8 +1,10 @@
-NULL =
 
-nobase_include_HEADERS = gbtools/gbtools.hpp \
-gbtools/gbtoolsUtils.hpp \
+nobase_include_HEADERS = \
+gbtools/gbtools.hpp \
+gbtools/gbtoolsCurl.hpp \
 gbtools/gbtoolsGUI.hpp \
+gbtools/gbtoolsPfetch.hpp \
+gbtools/gbtoolsUtils.hpp \
 $(NULL)
 
 # Extra files to remove for the maintainer-clean target.

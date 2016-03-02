@@ -10,12 +10,16 @@ AC_CONFIG_SRCDIR([src/gbtoolsGUI/gbtoolsGUI.cpp])
 AM_INIT_AUTOMAKE([1.9 foreign])
 AC_CONFIG_HEADERS([config.h])
 
+
 AC_CONFIG_FILES([Makefile
 src/Makefile
 src/include/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
+src/gbtoolsCurl/Makefile
+src/gbtoolsPfetch/Makefile
 ])
+
 
 # Check if this is a Git repository and, if so, include info about the current
 # status in the version info. Otherwise use PACKAGE_VERSION (which will get
@@ -25,17 +29,23 @@ then AC_DEFINE_UNQUOTED([GBTOOLS_VERSION], ["`git describe --abbrev=1`"], ["gbto
 else AC_DEFINE([GBTOOLS_VERSION], [PACKAGE_VERSION], ["gbtools package version"])
 fi
 
-# libtool
-#LT_INIT()
+
+AC_CONFIG_MACRO_DIR([m4])
+
+LT_INIT([disable-shared])
+
+LT_LANG([C++])
+
+# keep libtool up to date automatically.
+AC_SUBST([LIBTOOL_DEPS])
 
 # Checks for programs.
-AC_PROG_CXX
-AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+
 
 # Checks for libraries.
 
@@ -54,6 +64,12 @@ AC_CHECK_FUNCS([dup2 floor gethostbyname memset socket sqrt strcasecmp strchr st
 # Check for dependencies required by all executables
 PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
 
+
+
+AC_ARG_VAR(GLIB_GENMARSHAL, [The glib-genmarshal executable.])
+AC_CHECK_PROG(GLIB_GENMARSHAL, glib-genmarshal, glib-genmarshal)
+
+
 # Check for the curl library. This is only required by blixemh, so don't fail
 # if we can't find it, but set the USE_LIBCURL to false. Note: I think we should 
 # probably be using pkg-config to find the curl dependencies, but that doesn't work
@@ -62,6 +78,9 @@ PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
 #PKG_CHECK_MODULES([LIBCURL_DEPS], [curl], [HAVE_LIBCURL=1], [HAVE_LIBCURL=0])
 AC_CHECK_HEADERS([curl/curl.h], [HAVE_LIBCURL=1], [HAVE_LIBCURL=0])
 AM_CONDITIONAL([USE_LIBCURL], [test "$HAVE_LIBCURL" -eq 1])
+
+
+
 
 # Check for execinfo.h. This is used to provide backtraces but is not available
 # on all systems.
@@ -77,7 +96,7 @@ echo \
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION}
 
  Prefix: '${prefix}'
- Compiler: '${CC} ${CFLAGS} ${CPPFLAGS}'
+ Compiler: '${CXX} ${CXXFLAGS} ${CPPFLAGS}'
 
  Now type 'make @<:@<target>@:>@'
    where the optional @<:@<target>@:>@ is:

@@ -45,7 +45,7 @@ const char *UtilsGetVersionString()
 /* Returns a string containing the library name and version */
 const char *UtilsGetVersionTitle()
 {
-  return "gbtools - "GBTOOLS_VERSION ;
+  return "gbtools - " GBTOOLS_VERSION ;
 }
 
 
