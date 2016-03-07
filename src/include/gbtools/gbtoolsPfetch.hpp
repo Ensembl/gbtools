@@ -39,8 +39,6 @@
 
 namespace gbtools
 {
-  class Pfetch ;
-
   // Callback functions.
   typedef bool (* ReaderFunc)(char *output, guint *output_size, char **error_msg,
                               void *user_data) ;
