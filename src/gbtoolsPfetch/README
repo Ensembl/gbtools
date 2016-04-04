@@ -9,6 +9,35 @@ are supported:
 
         - an http interface to the pfetch server itself
 
+See "Pfetch Server" below for a description of what can be retrieved from the
+pfetch server. The Pfetch objects pass through any arguments they are given
+for the pfetch server and simply retrieve the resulting text.
+
+
+Overview
+--------
+
+The Pfetch class implements functions common to both pipe and http interfaces
+as an abstract base class, PfetchPipe and PfetchHttp then inherit from Pfetch
+and augment it with extra functions/data as appropriate.
+
+Class definitions have been kept as simple as possible by hiding details of
+either the pipe or http code completely. This has involved passing around a
+pointer to the pfetch object as in both cases asynchronous code with callback
+routines is used to get the data from the pfetch server.
+
+The application registers callbacks for reading, error and closing of the
+pfetch connection and these are in turn called from the objects callbacks
+which are themselves registered with Glib or curl code for accessing the
+server.
+
+
+
+
+
+Pfetch Server
+-------------
+
 The following "help" description from pfetch shows what can be retrieved:
 
 
