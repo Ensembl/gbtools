@@ -1,10 +1,10 @@
-/*  File: gbtools.hpp
- *  Author: Gemma Barson, 2015-03-17
- *  Copyright (c) 2015 Genome Research Ltd
- * ---------------------------------------------------------------------------
+/*  File: gbtoolsTrackhub.hpp
+ *  Author: Gemma Barson (gb10@sanger.ac.uk)
+ *  Copyright (c) 2016: Genome Research Ltd.
+ *-------------------------------------------------------------------
  * gbtools is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 3
+ * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -16,23 +16,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
- * ---------------------------------------------------------------------------
+ *-------------------------------------------------------------------
  * This file is part of the gbtools genome browser tools library, 
  * written by
  *      Ed Griffiths      (Sanger Institute, UK)  <edgrif@sanger.ac.uk>
  *      Gemma Barson      (Sanger Institute, UK)  <gb10@sanger.ac.uk>
  *      Steve Miller      (Sanger Institute, UK)  <sm23@sanger.ac.uk>
  *
- * Description: Contains all exported gbtools functions
+ * Description: Ensembl Track Hub Registry functions
  *----------------------------------------------------------------------------
  */
-#ifndef gbtools_h_included
-#define gbtools_h_included
 
-#include <gbtools/gbtoolsCurl.hpp>
-#include <gbtools/gbtoolsGUI.hpp>
-#include <gbtools/gbtoolsPfetch.hpp>
-#include <gbtools/gbtoolsUtils.hpp>
-#include <gbtools/gbtoolsTrackhub.hpp>
+#ifndef GBTOOLS_TRACKHUB_H
+#define GBTOOLS_TRACKHUB_H
 
-#endif /* gbtools_h_included */
+namespace gbtools
+{
+
+void testTrackhub(); // temp function for testing
+
+
+} /* gbtools namespace */
+
+#endif	/* GBTOOLS_TRACKHUB_H */

@@ -664,10 +664,14 @@ static void curl_object_set_property(GObject      *gobject,
     case CURLOPT_PORT:
     case CURLOPT_WRITEFUNCTION:
     case CURLOPT_WRITEDATA:
+    case CURLOPT_READFUNCTION:
+    case CURLOPT_READDATA:
     case CURLOPT_HEADERFUNCTION:
     case CURLOPT_HEADERDATA:
     case CURLOPT_POST:
+    case CURLOPT_POSTFIELDSIZE:
     case CURLOPT_HTTPGET:
+    case CURLOPT_HTTPHEADER:
     case CURLOPT_COOKIEFILE:
     case CURLOPT_PROXY:
     case CURLOPT_IPRESOLVE:

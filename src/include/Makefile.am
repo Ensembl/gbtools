@@ -2,6 +2,7 @@
 nobase_include_HEADERS = \
 gbtools/gbtools.hpp \
 gbtools/gbtoolsCurl.hpp \
+gbtools/gbtoolsTrackhub.hpp \
 gbtools/gbtoolsGUI.hpp \
 gbtools/gbtoolsPfetch.hpp \
 gbtools/gbtoolsUtils.hpp \
