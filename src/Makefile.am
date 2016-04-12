@@ -1,5 +1,5 @@
 
-SUBDIRS = include jsoncpp gbtoolsUtils gbtoolsGUI gbtoolsPfetch gbtoolsCurl
+SUBDIRS = include jsoncpp gbtoolsUtils gbtoolsGUI gbtoolsPfetch gbtoolsCurl gbtoolsTrackhub
 
 # Extra files to remove for the maintainer-clean target.
 #

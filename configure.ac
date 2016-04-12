@@ -18,6 +18,7 @@ src/jsoncpp/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
 src/gbtoolsCurl/Makefile
+src/gbtoolsTrackhub/Makefile
 src/gbtoolsPfetch/Makefile
 ])
 

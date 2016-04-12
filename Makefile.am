@@ -11,6 +11,7 @@ libgbtools_la_SOURCES =
 libgbtools_la_LIBADD  = \
 src/jsoncpp/libjsoncpp.la \
 src/gbtoolsCurl/libgbtoolsCurl.la \
+src/gbtoolsTrackhub/libgbtoolsTrackhub.la \
 src/gbtoolsGUI/libgbtoolsGUI.la \
 src/gbtoolsPfetch/libgbtoolsPfetch.la \
 src/gbtoolsUtils/libgbtoolsUtils.la
