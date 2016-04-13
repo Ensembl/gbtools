@@ -32,6 +32,8 @@
 #include <string>
 #include <curl/curl.h>
 
+#include <json/json.h>
+
 #include <gbtools/gbtoolsCurl.hpp>
 
 
