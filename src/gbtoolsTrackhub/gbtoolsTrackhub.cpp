@@ -390,16 +390,16 @@ Json::Value Registry::search(const string &search_str,
                              const string &hub)
 {
   // Create a json-formatted message
-  Json::Value message_js;
-  message_js["query"] = search_str;
-  message_js["species"] = species;
-  message_js["assembly"] = assembly;
-  message_js["hub"] = hub;
+  Json::Value payload_js;
+  payload_js["query"] = search_str;
+  payload_js["species"] = species;
+  payload_js["assembly"] = assembly;
+  payload_js["hub"] = hub;
   
-  stringstream message_ss;
-  message_ss << message_js;
+  stringstream payload_ss;
+  payload_ss << payload_js;
   
-  Json::Value js = sendRequest("/api/search", message_ss.str());
+  Json::Value js = sendRequest("/api/search", payload_ss.str());
 
   return js;
 }
@@ -484,23 +484,25 @@ Json::Value Registry::registerHub(const string &url,
                                   const string &type)
 {
   // Create a json-formatted message
-  Json::Value message_js;
-  message_js["url"] = url;
+  Json::Value payload_js;
+  payload_js["url"] = url;
 
   for (auto iter = assemblies.begin(); iter != assemblies.end(); ++iter)
-    message_js["assemblies"][iter->first] = iter->second;
+    payload_js["assemblies"][iter->first] = iter->second;
 
   if (type.length() > 0)
-    message_js["type"] = type;
+    payload_js["type"] = type;
 
-  stringstream message_ss;
-  message_ss << message_js;
+  stringstream payload_ss;
+  payload_ss << payload_js;
 
   // Do the request
-  Json::Value js = sendRequest("/api/trackhub", message_ss.str(), true);
+  Json::Value js = sendRequest("/api/trackhub", payload_ss.str(), true);
 
   return js;
 }
+
+
 
 
 } // namespace trackhub
