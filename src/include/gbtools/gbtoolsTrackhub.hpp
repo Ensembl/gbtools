@@ -30,12 +30,44 @@
 #ifndef GBTOOLS_TRACKHUB_H
 #define GBTOOLS_TRACKHUB_H
 
+
+#include <string>
+#include <gbtools/gbtoolsCurl.hpp>
+
+
 namespace gbtools
 {
+namespace trackhub
+{
+
+
+/* Class for accessing the Ensembl Track Hub Registry API */
+class Registry
+{
+public:
+
+  Registry();
+  ~Registry();
+
+  std::string getVersion();
+
+private:
+
+  std::string getRequest(const std::string &url);
+  std::string postRequest(const std::string &url, const std::string &postfields);
+
+  CURLObject curl_object_get_;
+  CURLObject curl_object_post_;
+  curl_slist *get_headers_;
+  curl_slist *post_headers_;
+};
+
+
+} // namespace trackhub
+
 
 void testTrackhub(); // temp function for testing
 
-
-} /* gbtools namespace */
+} /* namespace gbtools */
 
 #endif	/* GBTOOLS_TRACKHUB_H */

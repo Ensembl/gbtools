@@ -34,6 +34,7 @@
 
 #include <json/json.h>
 
+#include <gbtools/gbtoolsTrackhub.hpp>
 #include <gbtools/gbtoolsCurl.hpp>
 
 
@@ -90,100 +91,160 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 }
 
 
-string downloadJSONCurl(const string &url, const string &postfields = "")
-{   
-  string result("");
-
-  CURLObject curl_object = CURLObjectNew();
-
-  if (curl_object) 
-    {
-      bool post = (postfields.length() > 0);
-      CurlReadData read_data(postfields.c_str());
-
-      struct curl_slist *headers = NULL;
-      headers = curl_slist_append(headers, "Accept: application/json");  
-      headers = curl_slist_append(headers, "Content-Type: application/json");
-      headers = curl_slist_append(headers, "charsets: utf-8"); 
-
-      if (post)
-        {
-#ifdef USE_CHUNKED
-          headers = curl_slist_append(headers, "Transfer-Encoding: chunked:");
-#endif
-
-#ifdef DISABLE_EXPECT
-          headers = curl_slist_append(headers, "Expect:");
-#endif
-        }
-
-      CURLObjectSet(curl_object,
-                    /* general settings */
-                    "post",  post,
-                    "url",   url.c_str(),
-                    //"proxy", "localhost:3128",
-                    /* request */
-                    /* functions */
-                    "writefunction",  curlWriteDataCB,
-                    "writedata",      &result,
-                    "httpheader",     headers,
-                    /* end of options */
-                    NULL);
-
-      if (post)
-        {
-          CURLObjectSet(curl_object,
-                        /* general settings */
-                        "post",  TRUE,
-                        /* functions */
-                        "readfunction",  curlReadDataCB,
-                        "readdata",      &read_data,
-                        /* end of options */
-                        NULL);
-
-#ifndef USE_CHUNKED
-          CURLObjectSet(curl_object,
-                        "postfieldsize", read_data.sizeleft,
-                        NULL);
-#endif
-        }
-
-      CURLObjectStatus res = CURLObjectPerform(curl_object, FALSE);
-
-      if (res == CURL_STATUS_FAILED)
-        cout << "CURL perform failed" << endl;
-
-      /* Clean up */
-      if (headers)
-        curl_slist_free_all(headers);
-    }
-
-  return result;
-}
 
 
 } // unnamed namespace
 
 
+
 namespace gbtools
 {
+
+namespace trackhub
+{
+
+
+Registry::Registry()
+{
+  /* Set up curl objects for get requests */
+  curl_object_get_ = CURLObjectNew();
+
+  struct curl_slist *get_headers_ = NULL;
+  get_headers_ = curl_slist_append(get_headers_, "Accept: application/json");  
+  get_headers_ = curl_slist_append(get_headers_, "Content-Type: application/json");
+  get_headers_ = curl_slist_append(get_headers_, "charsets: utf-8");
+ 
+  CURLObjectSet(curl_object_get_, 
+                "post",           FALSE,
+                "httpheader",     get_headers_, 
+                "writefunction",  curlWriteDataCB,
+                NULL);
+
+
+  /* Set up curl objects for post requests */
+  curl_object_post_ = CURLObjectNew();
+
+  struct curl_slist *post_headers_ = NULL;
+  post_headers_ = curl_slist_append(post_headers_, "Accept: application/json");  
+  post_headers_ = curl_slist_append(post_headers_, "Content-Type: application/json");
+  post_headers_ = curl_slist_append(post_headers_, "charsets: utf-8"); 
+
+#ifdef USE_CHUNKED
+  post_headers_ = curl_slist_append(post_headers_, "Transfer-Encoding: chunked:");
+#endif
+
+#ifdef DISABLE_EXPECT
+  post_headers_ = curl_slist_append(post_headers_, "Expect:");
+#endif
+
+  CURLObjectSet(curl_object_post_, 
+                "post",           TRUE,
+                "httpheader",     post_headers_, 
+                "writefunction",  curlWriteDataCB,
+                "readfunction",   curlReadDataCB,
+                NULL);
+}
+
+
+Registry::~Registry()
+{
+  /* Clean up */
+  if (get_headers_)
+    curl_slist_free_all(get_headers_);
+
+  if (post_headers_)
+    curl_slist_free_all(post_headers_);
+}
+
+
+/* Does the work to send the given GET request using CURL */
+string Registry::getRequest(const string &url)
+{   
+  string result("");
+
+  CURLObjectSet(curl_object_get_,
+                "url",   url.c_str(),
+                "writedata",      &result,
+                NULL);
+
+  CURLObjectStatus res = CURLObjectPerform(curl_object_get_, FALSE);
+  
+  if (res == CURL_STATUS_FAILED)
+    cout << "CURL perform failed" << endl;
+
+  return result;
+}
+
+/* Does the work to send the given POST request using CURL */
+string Registry::postRequest(const string &url, const string &postfields)
+{   
+  string result("");
+
+  CurlReadData read_data(postfields.c_str());
+
+  CURLObjectSet(curl_object_post_,
+                "url",   url.c_str(),
+                "writedata",      &result,
+                "readdata",       &read_data,
+                NULL);
+
+#ifndef USE_CHUNKED
+  CURLObjectSet(curl_object_post_,
+                "postfieldsize", read_data.sizeleft,
+                NULL);
+#endif
+
+  CURLObjectStatus res = CURLObjectPerform(curl_object_post_, FALSE);
+  
+  if (res == CURL_STATUS_FAILED)
+    cout << "CURL perform failed" << endl;
+
+  return result;
+}
+
+
+string Registry::getVersion()
+{
+  string result("");
+
+  string buffer = getRequest("https://www.trackhubregistry.org/api/info/version");
+
+  Json::Value js;
+  Json::Reader reader;
+  bool ok = reader.parse(buffer, js);
+
+  if (js["release"].isString())
+    result = js["release"].asString();
+
+  return result;
+}
+
+
+
+
+} // namespace trackhub
+
+
+
 
 // Temp function to allow testing of trackhub functions
 void testTrackhub()
 {
   cout << "Testing" << endl;
 
-  string version = downloadJSONCurl("https://www.trackhubregistry.org/api/info/version");
-  string species = downloadJSONCurl("https://www.trackhubregistry.org/api/info/species");
-  string assemblies = downloadJSONCurl("https://www.trackhubregistry.org/api/info/assemblies");
-  //string trackhubs = downloadJSONCurl("https://www.trackhubregistry.org/api/info/trackhubs");
+  trackhub::Registry registry;
+  cout << registry.getVersion() << endl;
 
-  string search_result = downloadJSONCurl("https://www.trackhubregistry.org/api/search",
-                                          "{\"query\": \"mouse\"}");
-
-  string track_search = downloadJSONCurl("https://www.trackhubregistry.org/api/search/trackdb/AVOEP91mYAv0XSJwlEPl");
+  //string species = downloadJSONCurl("https://www.trackhubregistry.org/api/info/species");
+  //string assemblies = downloadJSONCurl("https://www.trackhubregistry.org/api/info/assemblies");
+  ////string trackhubs = downloadJSONCurl("https://www.trackhubregistry.org/api/info/trackhubs");
+  //
+  //string search_result = downloadJSONCurl("https://www.trackhubregistry.org/api/search",
+  //                                        "{\"query\": \"mouse\"}");
+  //
+  //string track_search = downloadJSONCurl("https://www.trackhubregistry.org/api/search/trackdb/AVOEP91mYAv0XSJwlEPl");
 
 
 }
 
-} // gbtools namespace
+} // namespace gbtools
