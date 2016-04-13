@@ -377,6 +377,33 @@ Json::Value Registry::searchTrackDb(const string &trackdb)
 }
 
 
+// Log in to the Registry
+bool Registry::login(const string &user, const string &pwd)
+{
+  bool ok = false;
+
+  CURLObjectSet(curl_object_get_,
+                "username", user.c_str(), 
+                "password", pwd.c_str(), 
+                NULL);
+
+  Json::Value js = sendRequest("/api/login");
+
+  CURLObjectSet(curl_object_get_, 
+                "username", NULL,
+                "password", NULL,
+                NULL);
+
+  if (js["auth_token"].isString())
+    {
+      ok = true;
+      auth_token_ = js["auth_token"].asString();
+    }
+
+  return ok;
+}
+
+
 } // namespace trackhub
 
 
@@ -426,14 +453,13 @@ void testTrackhub()
 
   Json::Value trackdb = registry.searchTrackDb("AVOEP91mYAv0XSJwlEPl");
   //cout << trackdb << endl;
-
-  Json::Value tracks = trackdb["configuration"];
-  stringstream indent;
-
-  for (Json::ValueIterator iter = tracks.begin(); iter != tracks.end(); ++iter)
-    {
-      processTrack(iter);
-    }
+  //Json::Value tracks = trackdb["configuration"];
+  //stringstream indent;
+  //for (Json::ValueIterator iter = tracks.begin(); iter != tracks.end(); ++iter)
+  //  {
+  //    processTrack(iter);
+  //  }
+  
 
 
 }

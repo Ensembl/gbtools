@@ -378,7 +378,21 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 
   /* --- Names & Passwords options --- */
 
-  /* These need adding */
+  g_object_class_install_property(gobject_class, CURLOPT_USERPWD,
+				  g_param_spec_string("userpwd", "userpwd",
+						      "user:password",
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
+
+  g_object_class_install_property(gobject_class, CURLOPT_USERNAME,
+				  g_param_spec_string("username", "username",
+						      "username",
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
+
+  g_object_class_install_property(gobject_class, CURLOPT_PASSWORD,
+				  g_param_spec_string("password", "password",
+						      "password",
+						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
+
 
   /* HTTP Options */
   g_object_class_install_property(gobject_class, CURLOPT_AUTOREFERER,
@@ -676,6 +690,9 @@ static void curl_object_set_property(GObject      *gobject,
     case CURLOPT_PROXY:
     case CURLOPT_IPRESOLVE:
     case CURLOPT_CAINFO:
+    case CURLOPT_USERPWD:
+    case CURLOPT_USERNAME:
+    case CURLOPT_PASSWORD:
       if(G_IS_PARAM_SPEC_STRING(pspec))
 	{
 	  char *str;

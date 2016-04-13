@@ -66,6 +66,7 @@ public:
   Json::Value searchTrackDb(const std::string &trackdb);
 
   // Registration API
+  bool login(const std::string &user, const std::string &pwd);
 
 private:
   Json::Value sendRequest(const std::string &url, const std::string &postfields = "");
@@ -73,6 +74,7 @@ private:
   std::string postRequest(const std::string &url, const std::string &postfields);
 
   std::string host_;
+  std::string auth_token_;
 
   CURLObject curl_object_get_;
   CURLObject curl_object_post_;
