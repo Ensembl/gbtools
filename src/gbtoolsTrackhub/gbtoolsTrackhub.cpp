@@ -90,9 +90,6 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
   return size_written;
 }
 
-
-
-
 } // unnamed namespace
 
 
@@ -106,6 +103,8 @@ namespace trackhub
 
 Registry::Registry()
 {
+  host_ = "https://www.trackhubregistry.org";
+
   /* Set up curl objects for get requests */
   curl_object_get_ = CURLObjectNew();
 
@@ -175,6 +174,7 @@ string Registry::getRequest(const string &url)
   return result;
 }
 
+
 /* Does the work to send the given POST request using CURL */
 string Registry::postRequest(const string &url, const string &postfields)
 {   
@@ -203,15 +203,44 @@ string Registry::postRequest(const string &url, const string &postfields)
 }
 
 
-string Registry::getVersion()
+// Send the given GET/POST request and return the resulting json
+Json::Value Registry::sendRequest(const string &request, const string &postfields)
+{
+  Json::Value js;
+  
+  string url = host_ + request;
+  string buffer;
+  
+  if (postfields.length() > 0)
+    buffer = postRequest(url, postfields);
+  else
+    buffer = getRequest(url);
+
+  json_reader_.parse(buffer, js);
+
+  return js;
+}
+
+
+// Ping the Registry server. Returns true if ok.
+bool Registry::ping()
+{
+  bool result = false;
+  
+  Json::Value js = sendRequest("/api/info/ping");
+
+  if (js["ping"].isInt())
+    result = js["ping"].asInt();
+
+  return result;
+}
+
+// Get the Registry version number
+string Registry::version()
 {
   string result("");
 
-  string buffer = getRequest("https://www.trackhubregistry.org/api/info/version");
-
-  Json::Value js;
-  Json::Reader reader;
-  bool ok = reader.parse(buffer, js);
+  Json::Value js = sendRequest("/api/info/version");
 
   if (js["release"].isString())
     result = js["release"].asString();
@@ -220,6 +249,23 @@ string Registry::getVersion()
 }
 
 
+// Get the list of species in the Registry
+//list<string> Registry::getSpecies()
+//{
+//  list<string> result;
+//
+//  string buffer = getRequest("/api/info/version");
+//
+//  Json::Value js;
+//  Json::Reader reader;
+//  bool ok = reader.parse(buffer, js);
+//
+//  if (js.isArray())
+//    result = js["release"].asString();
+//
+//  return result;
+//}
+//
 
 
 } // namespace trackhub
@@ -233,16 +279,18 @@ void testTrackhub()
   cout << "Testing" << endl;
 
   trackhub::Registry registry;
-  cout << registry.getVersion() << endl;
 
-  //string species = downloadJSONCurl("https://www.trackhubregistry.org/api/info/species");
-  //string assemblies = downloadJSONCurl("https://www.trackhubregistry.org/api/info/assemblies");
-  ////string trackhubs = downloadJSONCurl("https://www.trackhubregistry.org/api/info/trackhubs");
+  cout << "Ping: " << registry.ping() << endl;
+  cout << "Version: " << registry.version() << endl;
+
+  //string species = downloadJSONCurl("/api/info/species");
+  //string assemblies = downloadJSONCurl("/api/info/assemblies");
+  ////string trackhubs = downloadJSONCurl("/api/info/trackhubs");
   //
-  //string search_result = downloadJSONCurl("https://www.trackhubregistry.org/api/search",
+  //string search_result = downloadJSONCurl("/api/search",
   //                                        "{\"query\": \"mouse\"}");
   //
-  //string track_search = downloadJSONCurl("https://www.trackhubregistry.org/api/search/trackdb/AVOEP91mYAv0XSJwlEPl");
+  //string track_search = downloadJSONCurl("/api/search/trackdb/AVOEP91mYAv0XSJwlEPl");
 
 
 }

@@ -35,6 +35,7 @@
 #include <gbtools/gbtoolsCurl.hpp>
 
 
+
 namespace gbtools
 {
 namespace trackhub
@@ -49,17 +50,22 @@ public:
   Registry();
   ~Registry();
 
-  std::string getVersion();
+  bool ping();
+  std::string version();
 
 private:
-
+  Json::Value sendRequest(const std::string &url, const std::string &postfields = "");
   std::string getRequest(const std::string &url);
   std::string postRequest(const std::string &url, const std::string &postfields);
+
+  std::string host_;
 
   CURLObject curl_object_get_;
   CURLObject curl_object_post_;
   curl_slist *get_headers_;
   curl_slist *post_headers_;
+
+  Json::Reader json_reader_;
 };
 
 
