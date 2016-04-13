@@ -69,6 +69,9 @@ public:
   bool login(const std::string &user, const std::string &pwd);
   std::string logout();
   Json::Value retrieve();
+  Json::Value registerHub(const std::string &url, 
+                          const std::map<std::string, std::string> &assemblies,
+                          const std::string &type = "");
 
 private:
   curl_slist* getHeaders(const bool authorise);

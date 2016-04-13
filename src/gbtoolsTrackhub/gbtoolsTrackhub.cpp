@@ -389,17 +389,17 @@ Json::Value Registry::search(const string &search_str,
                              const string &assembly,
                              const string &hub)
 {
-  // Create a json formatted query
-  Json::Value query_js;
-  query_js["query"] = search_str;
-  query_js["species"] = species;
-  query_js["assembly"] = assembly;
-  query_js["hub"] = hub;
+  // Create a json-formatted message
+  Json::Value message_js;
+  message_js["query"] = search_str;
+  message_js["species"] = species;
+  message_js["assembly"] = assembly;
+  message_js["hub"] = hub;
   
-  stringstream query_ss;
-  query_ss << query_js;
+  stringstream message_ss;
+  message_ss << message_js;
   
-  Json::Value js = sendRequest("/api/search", query_ss.str());
+  Json::Value js = sendRequest("/api/search", message_ss.str());
 
   return js;
 }
@@ -476,6 +476,33 @@ Json::Value Registry::retrieve()
 }
 
 
+// Register a track hub as the current user
+// assemblies: a map of assembly name in the hub to INSDC accessions
+// type: "genomics", "epigenomics", "transcriptomics" or "proteomics"
+Json::Value Registry::registerHub(const string &url,
+                                  const map<string, string> &assemblies,
+                                  const string &type)
+{
+  // Create a json-formatted message
+  Json::Value message_js;
+  message_js["url"] = url;
+
+  for (auto iter = assemblies.begin(); iter != assemblies.end(); ++iter)
+    message_js["assemblies"][iter->first] = iter->second;
+
+  if (type.length() > 0)
+    message_js["type"] = type;
+
+  stringstream message_ss;
+  message_ss << message_js;
+
+  // Do the request
+  Json::Value js = sendRequest("/api/trackhub", message_ss.str(), true);
+
+  return js;
+}
+
+
 } // namespace trackhub
 
 
@@ -532,6 +559,11 @@ void testTrackhub()
   //    processTrack(iter);
   //  }
 
+//map<string, string> mymap;
+//mymap["araTha1"] = "GCA_000001735.1";
+//mymap["ricCom1"] = "GCA_000151685.2";
+//mymap["braRap1"] = "GCA_000309985.1";
+//registry.registerHub("http://genome-test.cse.ucsc.edu/~hiram/hubs/Plants/hub.txt", mymap);
 
 }
 
