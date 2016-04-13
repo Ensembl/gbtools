@@ -90,6 +90,24 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
   return size_written;
 }
 
+
+void printList(list<string> lst)
+{
+  for (auto &it : lst)
+    cout << it << ", ";
+}
+
+void printMap(map<string, list<string>> m)
+{
+  for (auto &iter : m)
+    {
+      cout << iter.first << ":  ";
+      printList(iter.second);
+      cout << endl;
+    }
+}
+
+
 } // unnamed namespace
 
 
@@ -108,7 +126,7 @@ Registry::Registry()
   /* Set up curl objects for get requests */
   curl_object_get_ = CURLObjectNew();
 
-  struct curl_slist *get_headers_ = NULL;
+  get_headers_ = NULL;
   get_headers_ = curl_slist_append(get_headers_, "Accept: application/json");  
   get_headers_ = curl_slist_append(get_headers_, "Content-Type: application/json");
   get_headers_ = curl_slist_append(get_headers_, "charsets: utf-8");
@@ -123,7 +141,7 @@ Registry::Registry()
   /* Set up curl objects for post requests */
   curl_object_post_ = CURLObjectNew();
 
-  struct curl_slist *post_headers_ = NULL;
+  post_headers_ = NULL;
   post_headers_ = curl_slist_append(post_headers_, "Accept: application/json");  
   post_headers_ = curl_slist_append(post_headers_, "Content-Type: application/json");
   post_headers_ = curl_slist_append(post_headers_, "charsets: utf-8"); 
@@ -250,27 +268,78 @@ string Registry::version()
 
 
 // Get the list of species in the Registry
-//list<string> Registry::getSpecies()
-//{
-//  list<string> result;
-//
-//  string buffer = getRequest("/api/info/version");
-//
-//  Json::Value js;
-//  Json::Reader reader;
-//  bool ok = reader.parse(buffer, js);
-//
-//  if (js.isArray())
-//    result = js["release"].asString();
-//
-//  return result;
-//}
-//
+list<string> Registry::species()
+{
+  list<string> result;
+
+  Json::Value js = sendRequest("/api/info/species");
+
+  if (js.isArray())
+    {
+      for (const Json::Value &iter : js)
+        {
+          if (iter.isString())
+            {
+              result.push_back(iter.asString());
+            }
+          else
+            {
+              result.clear();
+              break;
+            }
+        }
+    }
+
+  return result;
+}
+
+// Get the list of assemblies in the Registry per species name
+map<string, list<string>> Registry::assemblies()
+{
+  map<string, list<string>> result;
+
+  bool ok = true;
+  Json::Value js = sendRequest("/api/info/assemblies");
+
+  for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
+    {
+      Json::Value species_key = species_iter.key();
+      Json::Value species_val = *species_iter;
+
+      if (species_key.isString() && species_val.isArray())
+        {
+          list<string> assembly_list;
+
+          for (const Json::Value &assembly_iter : species_val)
+            {
+              if (assembly_iter.isString())
+                {
+                  assembly_list.push_back(assembly_iter.asString());
+                }
+              else
+                {
+                  assembly_list.clear();
+                  ok = false;
+                  break;
+                }
+            }
+
+          result[species_key.asString()] = assembly_list;
+        }
+      else
+        {
+          result.clear();
+          ok = false;
+          break;
+        }
+    }
+
+  return result;
+}
+
 
 
 } // namespace trackhub
-
-
 
 
 // Temp function to allow testing of trackhub functions
@@ -283,7 +352,12 @@ void testTrackhub()
   cout << "Ping: " << registry.ping() << endl;
   cout << "Version: " << registry.version() << endl;
 
-  //string species = downloadJSONCurl("/api/info/species");
+  list<string> species = registry.species();
+  //printList(species);
+
+  map<string, list<string>> assemblies = registry.assemblies();
+  //printMap(assemblies);
+
   //string assemblies = downloadJSONCurl("/api/info/assemblies");
   ////string trackhubs = downloadJSONCurl("/api/info/trackhubs");
   //

@@ -32,6 +32,8 @@
 
 
 #include <string>
+#include <list>
+
 #include <gbtools/gbtoolsCurl.hpp>
 
 
@@ -52,6 +54,8 @@ public:
 
   bool ping();
   std::string version();
+  std::list<std::string> species();
+  std::map<std::string, std::list<std::string>> assemblies();
 
 private:
   Json::Value sendRequest(const std::string &url, const std::string &postfields = "");
