@@ -108,6 +108,7 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 //}
 
 
+
 } // unnamed namespace
 
 
@@ -123,40 +124,18 @@ Registry::Registry()
 {
   host_ = "https://www.trackhubregistry.org";
 
-  /* Set up curl objects for get requests */
+  // Set up curl objects for GET/POST requests. Set the properties here that will be 
+  // the same for all requests.  */
   curl_object_get_ = CURLObjectNew();
-
-  get_headers_ = NULL;
-  get_headers_ = curl_slist_append(get_headers_, "Accept: application/json");  
-  get_headers_ = curl_slist_append(get_headers_, "Content-Type: application/json");
-  get_headers_ = curl_slist_append(get_headers_, "charsets: utf-8");
+  curl_object_post_ = CURLObjectNew();
  
   CURLObjectSet(curl_object_get_, 
                 "post",           FALSE,
-                "httpheader",     get_headers_, 
                 "writefunction",  curlWriteDataCB,
                 NULL);
 
-
-  /* Set up curl objects for post requests */
-  curl_object_post_ = CURLObjectNew();
-
-  post_headers_ = NULL;
-  post_headers_ = curl_slist_append(post_headers_, "Accept: application/json");  
-  post_headers_ = curl_slist_append(post_headers_, "Content-Type: application/json");
-  post_headers_ = curl_slist_append(post_headers_, "charsets: utf-8"); 
-
-#ifdef USE_CHUNKED
-  post_headers_ = curl_slist_append(post_headers_, "Transfer-Encoding: chunked:");
-#endif
-
-#ifdef DISABLE_EXPECT
-  post_headers_ = curl_slist_append(post_headers_, "Expect:");
-#endif
-
   CURLObjectSet(curl_object_post_, 
                 "post",           TRUE,
-                "httpheader",     post_headers_, 
                 "writefunction",  curlWriteDataCB,
                 "readfunction",   curlReadDataCB,
                 NULL);
@@ -165,22 +144,67 @@ Registry::Registry()
 
 Registry::~Registry()
 {
-  /* Clean up */
-  if (get_headers_)
-    curl_slist_free_all(get_headers_);
+}
 
-  if (post_headers_)
-    curl_slist_free_all(post_headers_);
+
+// Return the headers for GET requests
+curl_slist* Registry::getHeaders(const bool authorise)
+{
+  curl_slist *headers = NULL;
+
+  headers = curl_slist_append(headers, "Accept: application/json");  
+  headers = curl_slist_append(headers, "Content-Type: application/json");
+  headers = curl_slist_append(headers, "charsets: utf-8");
+
+  if (authorise)
+    {
+      if (user_.empty() || auth_token_.empty())
+        {
+          cout << "Not logged in" << endl;
+        }
+      else
+        {
+          // Set user and auth token in the headers
+          string user_header = "User: " + user_;
+          string auth_header = "Auth-Token: " + auth_token_;
+
+          headers = curl_slist_append(headers, user_header.c_str());
+          headers = curl_slist_append(headers, auth_header.c_str());
+        }
+    }
+
+  return headers;
+}
+
+
+// Return the headers for POST requests
+curl_slist* Registry::postHeaders(const bool authorise)
+{
+  curl_slist *headers = getHeaders(authorise);
+
+#ifdef USE_CHUNKED
+  headers = curl_slist_append(headers, "Transfer-Encoding: chunked:");
+#endif
+
+#ifdef DISABLE_EXPECT
+  headers = curl_slist_append(headers, "Expect:");
+#endif
+
+  return headers;
 }
 
 
 /* Does the work to send the given GET request using CURL */
-string Registry::getRequest(const string &url)
+string Registry::getRequest(const string &url,
+                            const bool authorise)
 {   
   string result("");
 
+  curl_slist *headers = getHeaders(authorise);
+
   CURLObjectSet(curl_object_get_,
-                "url",   url.c_str(),
+                "url",            url.c_str(),
+                "httpheader",     headers, 
                 "writedata",      &result,
                 NULL);
 
@@ -189,19 +213,27 @@ string Registry::getRequest(const string &url)
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
 
+  // Clean up
+  if (headers)
+    curl_slist_free_all(headers);
+
   return result;
 }
 
 
 /* Does the work to send the given POST request using CURL */
-string Registry::postRequest(const string &url, const string &postfields)
+string Registry::postRequest(const string &url, 
+                             const string &postfields,
+                             const bool authorise)
 {   
   string result("");
 
   CurlReadData read_data(postfields.c_str());
+  curl_slist *headers = postHeaders(authorise);
 
   CURLObjectSet(curl_object_post_,
-                "url",   url.c_str(),
+                "url",            url.c_str(),
+                "httpheader",     headers, 
                 "writedata",      &result,
                 "readdata",       &read_data,
                 NULL);
@@ -217,12 +249,18 @@ string Registry::postRequest(const string &url, const string &postfields)
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
 
+  // Clean up
+  if (headers)
+    curl_slist_free_all(headers);
+
   return result;
 }
 
 
 // Send the given GET/POST request and return the resulting json
-Json::Value Registry::sendRequest(const string &request, const string &postfields)
+Json::Value Registry::sendRequest(const string &request, 
+                                  const string &postfields,
+                                  const bool authorise)
 {
   Json::Value js;
   
@@ -230,9 +268,9 @@ Json::Value Registry::sendRequest(const string &request, const string &postfield
   string buffer;
   
   if (postfields.length() > 0)
-    buffer = postRequest(url, postfields);
+    buffer = postRequest(url, postfields, authorise);
   else
-    buffer = getRequest(url);
+    buffer = getRequest(url, authorise);
 
   json_reader_.parse(buffer, js);
 
@@ -397,10 +435,34 @@ bool Registry::login(const string &user, const string &pwd)
   if (js["auth_token"].isString())
     {
       ok = true;
+      user_ = user;
       auth_token_ = js["auth_token"].asString();
     }
 
   return ok;
+}
+
+// Log out of the Registry
+string Registry::logout()
+{
+  string result;
+
+  // Do the request
+  Json::Value js = sendRequest("/api/logout", "", true);
+
+  // Check return value
+  if (js["message"].isString())
+    {
+      result = js["message"].asString();
+      user_.clear();
+      auth_token_.clear();
+    }
+  else
+    {
+      cout << "Error logging out" << endl;
+    }
+
+  return result;
 }
 
 
@@ -459,7 +521,6 @@ void testTrackhub()
   //  {
   //    processTrack(iter);
   //  }
-  
 
 
 }

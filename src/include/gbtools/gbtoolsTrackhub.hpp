@@ -67,19 +67,21 @@ public:
 
   // Registration API
   bool login(const std::string &user, const std::string &pwd);
+  std::string logout();
 
 private:
-  Json::Value sendRequest(const std::string &url, const std::string &postfields = "");
-  std::string getRequest(const std::string &url);
-  std::string postRequest(const std::string &url, const std::string &postfields);
+  curl_slist* getHeaders(const bool authorise);
+  curl_slist* postHeaders(const bool authorise);
+  std::string getRequest(const std::string &url, const bool authorise);
+  std::string postRequest(const std::string &url, const std::string &postfields, const bool authorise);
+  Json::Value sendRequest(const std::string &url, const std::string &postfields = "", const bool authorise = false);
 
   std::string host_;
+  std::string user_;
   std::string auth_token_;
 
   CURLObject curl_object_get_;
   CURLObject curl_object_post_;
-  curl_slist *get_headers_;
-  curl_slist *post_headers_;
 
   Json::Reader json_reader_;
 };
