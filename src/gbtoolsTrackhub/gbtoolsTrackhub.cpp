@@ -574,6 +574,29 @@ string Registry::deleteHub(const string &trackhub)
   return result;
 }
 
+// Retrieve a registered trackdb.
+Json::Value Registry::retrieveTrackDb(const string &trackdb)
+{
+  string query("/api/trackdb/");
+  query += trackdb;
+
+  // Do the request
+  Json::Value js = getRequest(query, true);
+
+  return js;
+}
+
+
+Json::Value Registry::deleteTrackDb(const string &trackdb)
+{
+  string query("/api/trackdb/");
+  query += trackdb;
+
+  Json::Value js = deleteRequest(query, true);
+
+  return js;
+}
+
 
 } // namespace trackhub
 
