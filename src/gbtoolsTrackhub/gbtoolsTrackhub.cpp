@@ -128,6 +128,7 @@ Registry::Registry()
   // the same for all requests.  */
   curl_object_get_ = CURLObjectNew();
   curl_object_post_ = CURLObjectNew();
+  curl_object_delete_ = CURLObjectNew();
  
   CURLObjectSet(curl_object_get_, 
                 "post",           FALSE,
@@ -138,6 +139,12 @@ Registry::Registry()
                 "post",           TRUE,
                 "writefunction",  curlWriteDataCB,
                 "readfunction",   curlReadDataCB,
+                NULL);
+
+  CURLObjectSet(curl_object_delete_, 
+                "post",           FALSE,
+                "writefunction",  curlWriteDataCB,
+                "customrequest", "DELETE",
                 NULL);
 }
 
@@ -194,7 +201,7 @@ curl_slist* Registry::postHeaders(const bool authorise)
 }
 
 
-/* Does the work to send the given GET request using CURL */
+// Does the work to send the given GET request using CURL
 string Registry::getRequest(const string &url,
                             const bool authorise)
 {   
@@ -220,8 +227,34 @@ string Registry::getRequest(const string &url,
   return result;
 }
 
+// Does the work to send the given DELETE request using CURL
+string Registry::deleteRequest(const string &url,
+                               const bool authorise)
+{   
+  string result("");
 
-/* Does the work to send the given POST request using CURL */
+  curl_slist *headers = getHeaders(authorise);
+
+  CURLObjectSet(curl_object_delete_,
+                "url",            url.c_str(),
+                "httpheader",     headers, 
+                "writedata",      &result,
+                NULL);
+
+  CURLObjectStatus res = CURLObjectPerform(curl_object_delete_, FALSE);
+  
+  if (res == CURL_STATUS_FAILED)
+    cout << "CURL perform failed" << endl;
+
+  // Clean up
+  if (headers)
+    curl_slist_free_all(headers);
+
+  return result;
+}
+
+
+// Does the work to send the given POST request using CURL
 string Registry::postRequest(const string &url, 
                              const string &postfields,
                              const bool authorise)
@@ -260,17 +293,22 @@ string Registry::postRequest(const string &url,
 // Send the given GET/POST request and return the resulting json
 Json::Value Registry::sendRequest(const string &request, 
                                   const string &postfields,
-                                  const bool authorise)
+                                  const bool authorise,
+                                  const bool del)
 {
   Json::Value js;
   
   string url = host_ + request;
   string buffer;
   
-  if (postfields.length() > 0)
+  if (postfields.length() > 0 && !del)
     buffer = postRequest(url, postfields, authorise);
-  else
+  else if (!del)
     buffer = getRequest(url, authorise);
+  else if (del)
+    buffer = deleteRequest(url, authorise);
+  else
+    cout << "Invalid params" << endl;
 
   json_reader_.parse(buffer, js);
 
@@ -503,6 +541,20 @@ Json::Value Registry::registerHub(const string &url,
 }
 
 
+string Registry::deleteHub(const string &trackhub)
+{
+  string result;
+
+  string query("/api/trackdb/");
+  query += trackhub;
+
+  Json::Value js = sendRequest(query, "", true, true);
+
+  if (js["message"].isString())
+    result = js["message"].asString();
+
+  return result;
+}
 
 
 } // namespace trackhub

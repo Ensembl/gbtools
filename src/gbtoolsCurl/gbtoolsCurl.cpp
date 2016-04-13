@@ -495,6 +495,10 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
   /* --- SSH options --- */
 
   /* --- Other options --- */
+  g_object_class_install_property(gobject_class, CURLOPT_CUSTOMREQUEST,
+				  g_param_spec_string("customrequest", "customrequest",
+                                                      "Custom request",
+                                                      NULL, (GParamFlags)CURL_PARAM_STATIC_WO));
 
   /* --- Telnet options --- */
 
@@ -693,6 +697,7 @@ static void curl_object_set_property(GObject      *gobject,
     case CURLOPT_USERPWD:
     case CURLOPT_USERNAME:
     case CURLOPT_PASSWORD:
+    case CURLOPT_CUSTOMREQUEST:
       if(G_IS_PARAM_SPEC_STRING(pspec))
 	{
 	  char *str;

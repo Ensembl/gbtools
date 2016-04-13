@@ -72,13 +72,19 @@ public:
   Json::Value registerHub(const std::string &url, 
                           const std::map<std::string, std::string> &assemblies,
                           const std::string &type = "");
+  std::string deleteHub(const std::string &ctrackhub);
+  
 
 private:
   curl_slist* getHeaders(const bool authorise);
   curl_slist* postHeaders(const bool authorise);
+
   std::string getRequest(const std::string &url, const bool authorise);
   std::string postRequest(const std::string &url, const std::string &postfields, const bool authorise);
-  Json::Value sendRequest(const std::string &url, const std::string &postfields = "", const bool authorise = false);
+  std::string deleteRequest(const std::string &url, const bool authorise);
+
+  Json::Value sendRequest(const std::string &url, const std::string &postfields = "", 
+                          const bool authorise = false, const bool del = false);
 
   std::string host_;
   std::string user_;
@@ -86,6 +92,7 @@ private:
 
   CURLObject curl_object_get_;
   CURLObject curl_object_post_;
+  CURLObject curl_object_delete_;
 
   Json::Reader json_reader_;
 };
