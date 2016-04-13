@@ -49,13 +49,23 @@ class Registry
 {
 public:
 
+  // Construct/destruct
   Registry();
   ~Registry();
 
+  // Info API
   bool ping();
   std::string version();
   std::list<std::string> species();
   std::map<std::string, std::list<std::string>> assemblies();
+  Json::Value trackhubs();
+
+  // Search API
+  Json::Value search(const std::string &query, const std::string &species = "",
+                     const std::string &assembly = "", const std::string &hub = "");
+  Json::Value searchTrackDb(const std::string &trackdb);
+
+  // Registration API
 
 private:
   Json::Value sendRequest(const std::string &url, const std::string &postfields = "");

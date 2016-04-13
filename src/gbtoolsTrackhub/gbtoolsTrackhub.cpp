@@ -91,21 +91,21 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 }
 
 
-void printList(list<string> lst)
-{
-  for (auto &it : lst)
-    cout << it << ", ";
-}
-
-void printMap(map<string, list<string>> m)
-{
-  for (auto &iter : m)
-    {
-      cout << iter.first << ":  ";
-      printList(iter.second);
-      cout << endl;
-    }
-}
+//void printList(list<string> lst)
+//{
+//  for (auto &it : lst)
+//    cout << it << ", ";
+//}
+//
+//void printMap(map<string, list<string>> m)
+//{
+//  for (auto &iter : m)
+//    {
+//      cout << iter.first << ":  ";
+//      printList(iter.second);
+//      cout << endl;
+//    }
+//}
 
 
 } // unnamed namespace
@@ -338,9 +338,69 @@ map<string, list<string>> Registry::assemblies()
 }
 
 
+Json::Value Registry::trackhubs()
+{
+  Json::Value js = sendRequest("/api/info/trackhubs");
+  return js;
+}
+
+
+// Search for the given search string and optional filters
+Json::Value Registry::search(const string &search_str,
+                             const string &species,
+                             const string &assembly,
+                             const string &hub)
+{
+  // Create a json formatted query
+  Json::Value query_js;
+  query_js["query"] = search_str;
+  query_js["species"] = species;
+  query_js["assembly"] = assembly;
+  query_js["hub"] = hub;
+  
+  stringstream query_ss;
+  query_ss << query_js;
+  
+  Json::Value js = sendRequest("/api/search", query_ss.str());
+
+  return js;
+}
+
+
+Json::Value Registry::searchTrackDb(const string &trackdb)
+{
+  string query("/api/search/trackdb/");
+  query += trackdb;
+
+  Json::Value js = sendRequest(query);
+  return js;
+}
+
 
 } // namespace trackhub
 
+
+
+void processTrack(Json::ValueIterator &iter, const int indent = 0)
+{
+  Json::Value js_track = *iter;
+
+  stringstream ss;
+  for (int i = 0; i < indent; ++i)
+    ss << " ";
+
+  cout << ss.str() << iter.key() << endl;
+
+  if (js_track["bigDataUrl"] != Json::nullValue)
+    cout << ss.str() << js_track["bigDataUrl"] << endl;
+
+  Json::Value js_children = js_track["members"];
+
+  for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
+    processTrack(child, indent + 2);
+
+  cout << endl;
+}
 
 // Temp function to allow testing of trackhub functions
 void testTrackhub()
@@ -358,13 +418,22 @@ void testTrackhub()
   map<string, list<string>> assemblies = registry.assemblies();
   //printMap(assemblies);
 
-  //string assemblies = downloadJSONCurl("/api/info/assemblies");
-  ////string trackhubs = downloadJSONCurl("/api/info/trackhubs");
-  //
-  //string search_result = downloadJSONCurl("/api/search",
-  //                                        "{\"query\": \"mouse\"}");
-  //
-  //string track_search = downloadJSONCurl("/api/search/trackdb/AVOEP91mYAv0XSJwlEPl");
+  Json::Value trackhubs = registry.trackhubs();
+  //cout << trackhubs << endl;
+
+  Json::Value mouse = registry.search("mouse");
+  //cout << mouse << endl;
+
+  Json::Value trackdb = registry.searchTrackDb("AVOEP91mYAv0XSJwlEPl");
+  //cout << trackdb << endl;
+
+  Json::Value tracks = trackdb["configuration"];
+  stringstream indent;
+
+  for (Json::ValueIterator iter = tracks.begin(); iter != tracks.end(); ++iter)
+    {
+      processTrack(iter);
+    }
 
 
 }
