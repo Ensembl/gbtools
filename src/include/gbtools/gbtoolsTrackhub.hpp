@@ -79,12 +79,13 @@ private:
   curl_slist* getHeaders(const bool authorise);
   curl_slist* postHeaders(const bool authorise);
 
-  std::string getRequest(const std::string &url, const bool authorise);
-  std::string postRequest(const std::string &url, const std::string &postfields, const bool authorise);
-  std::string deleteRequest(const std::string &url, const bool authorise);
+  std::string doGetRequest(const std::string &url, const bool authorise);
+  std::string doPostRequest(const std::string &url, const std::string &postfields, const bool authorise);
+  std::string doDeleteRequest(const std::string &url, const bool authorise);
 
-  Json::Value sendRequest(const std::string &url, const std::string &postfields = "", 
-                          const bool authorise = false, const bool del = false);
+  Json::Value getRequest(const std::string &request, const bool authorise = false);
+  Json::Value postRequest(const std::string &request, const std::string &postfields, const bool authorise = false);
+  Json::Value deleteRequest(const std::string &request, const bool authorise = false);
 
   std::string host_;
   std::string user_;

@@ -202,8 +202,8 @@ curl_slist* Registry::postHeaders(const bool authorise)
 
 
 // Does the work to send the given GET request using CURL
-string Registry::getRequest(const string &url,
-                            const bool authorise)
+string Registry::doGetRequest(const string &url,
+                              const bool authorise)
 {   
   string result("");
 
@@ -228,8 +228,8 @@ string Registry::getRequest(const string &url,
 }
 
 // Does the work to send the given DELETE request using CURL
-string Registry::deleteRequest(const string &url,
-                               const bool authorise)
+string Registry::doDeleteRequest(const string &url,
+                                 const bool authorise)
 {   
   string result("");
 
@@ -255,9 +255,9 @@ string Registry::deleteRequest(const string &url,
 
 
 // Does the work to send the given POST request using CURL
-string Registry::postRequest(const string &url, 
-                             const string &postfields,
-                             const bool authorise)
+string Registry::doPostRequest(const string &url, 
+                               const string &postfields,
+                               const bool authorise)
 {   
   string result("");
 
@@ -290,26 +290,38 @@ string Registry::postRequest(const string &url,
 }
 
 
-// Send the given GET/POST request and return the resulting json
-Json::Value Registry::sendRequest(const string &request, 
-                                  const string &postfields,
-                                  const bool authorise,
-                                  const bool del)
+Json::Value Registry::getRequest(const string &request,
+                                 const bool authorise)
 {
   Json::Value js;
   
   string url = host_ + request;
-  string buffer;
-  
-  if (postfields.length() > 0 && !del)
-    buffer = postRequest(url, postfields, authorise);
-  else if (!del)
-    buffer = getRequest(url, authorise);
-  else if (del)
-    buffer = deleteRequest(url, authorise);
-  else
-    cout << "Invalid params" << endl;
+  string buffer = doGetRequest(url, authorise);
+  json_reader_.parse(buffer, js);
 
+  return js;
+}
+
+Json::Value Registry::postRequest(const string &request,
+                                  const string &postfields,
+                                  const bool authorise)
+{
+  Json::Value js;
+  
+  string url = host_ + request;
+  string buffer = doPostRequest(url, postfields, authorise);
+  json_reader_.parse(buffer, js);
+
+  return js;
+}
+
+Json::Value Registry::deleteRequest(const string &request,
+                                    const bool authorise)
+{
+  Json::Value js;
+  
+  string url = host_ + request;
+  string buffer = doDeleteRequest(url, authorise);
   json_reader_.parse(buffer, js);
 
   return js;
@@ -321,7 +333,7 @@ bool Registry::ping()
 {
   bool result = false;
   
-  Json::Value js = sendRequest("/api/info/ping");
+  Json::Value js = getRequest("/api/info/ping");
 
   if (js["ping"].isInt())
     result = js["ping"].asInt();
@@ -334,7 +346,7 @@ string Registry::version()
 {
   string result("");
 
-  Json::Value js = sendRequest("/api/info/version");
+  Json::Value js = getRequest("/api/info/version");
 
   if (js["release"].isString())
     result = js["release"].asString();
@@ -348,7 +360,7 @@ list<string> Registry::species()
 {
   list<string> result;
 
-  Json::Value js = sendRequest("/api/info/species");
+  Json::Value js = getRequest("/api/info/species");
 
   if (js.isArray())
     {
@@ -375,7 +387,7 @@ map<string, list<string>> Registry::assemblies()
   map<string, list<string>> result;
 
   bool ok = true;
-  Json::Value js = sendRequest("/api/info/assemblies");
+  Json::Value js = getRequest("/api/info/assemblies");
 
   for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
     {
@@ -416,7 +428,7 @@ map<string, list<string>> Registry::assemblies()
 
 Json::Value Registry::trackhubs()
 {
-  Json::Value js = sendRequest("/api/info/trackhubs");
+  Json::Value js = getRequest("/api/info/trackhubs");
   return js;
 }
 
@@ -437,7 +449,7 @@ Json::Value Registry::search(const string &search_str,
   stringstream payload_ss;
   payload_ss << payload_js;
   
-  Json::Value js = sendRequest("/api/search", payload_ss.str());
+  Json::Value js = postRequest("/api/search", payload_ss.str());
 
   return js;
 }
@@ -448,7 +460,7 @@ Json::Value Registry::searchTrackDb(const string &trackdb)
   string query("/api/search/trackdb/");
   query += trackdb;
 
-  Json::Value js = sendRequest(query);
+  Json::Value js = getRequest(query);
   return js;
 }
 
@@ -463,7 +475,7 @@ bool Registry::login(const string &user, const string &pwd)
                 "password", pwd.c_str(), 
                 NULL);
 
-  Json::Value js = sendRequest("/api/login");
+  Json::Value js = getRequest("/api/login");
 
   CURLObjectSet(curl_object_get_, 
                 "username", NULL,
@@ -486,7 +498,7 @@ string Registry::logout()
   string result;
 
   // Do the request
-  Json::Value js = sendRequest("/api/logout", "", true);
+  Json::Value js = getRequest("/api/logout", true);
 
   // Check return value
   if (js["message"].isString())
@@ -508,7 +520,7 @@ string Registry::logout()
 Json::Value Registry::retrieve()
 {
   // Do the request
-  Json::Value js = sendRequest("/api/trackhub", "", true);
+  Json::Value js = getRequest("/api/trackhub", true);
 
   return js;
 }
@@ -535,7 +547,7 @@ Json::Value Registry::registerHub(const string &url,
   payload_ss << payload_js;
 
   // Do the request
-  Json::Value js = sendRequest("/api/trackhub", payload_ss.str(), true);
+  Json::Value js = postRequest("/api/trackhub", payload_ss.str(), true);
 
   return js;
 }
@@ -548,7 +560,7 @@ string Registry::deleteHub(const string &trackhub)
   string query("/api/trackdb/");
   query += trackhub;
 
-  Json::Value js = sendRequest(query, "", true, true);
+  Json::Value js = deleteRequest(query, true);
 
   if (js["message"].isString())
     result = js["message"].asString();
