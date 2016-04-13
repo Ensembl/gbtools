@@ -516,16 +516,6 @@ string Registry::logout()
 }
 
 
-// Retrieve current users' registered track hubs
-Json::Value Registry::retrieve()
-{
-  // Do the request
-  Json::Value js = getRequest("/api/trackhub", true);
-
-  return js;
-}
-
-
 // Register a track hub as the current user
 // assemblies: a map of assembly name in the hub to INSDC accessions
 // type: "genomics", "epigenomics", "transcriptomics" or "proteomics"
@@ -553,11 +543,27 @@ Json::Value Registry::registerHub(const string &url,
 }
 
 
+// Retrieve current users' registered track hubs. Gets the trackhub with the
+// given name, or all registered track hubs if no name is given.
+Json::Value Registry::retrieveHub(const string &trackhub)
+{
+  stringstream query_ss("/api/trackhub");
+  
+  if (trackhub.length() > 0)
+    query_ss << "/" << trackhub;
+
+  // Do the request
+  Json::Value js = getRequest(query_ss.str(), true);
+
+  return js;
+}
+
+
 string Registry::deleteHub(const string &trackhub)
 {
   string result;
 
-  string query("/api/trackdb/");
+  string query("/api/trackhub/");
   query += trackhub;
 
   Json::Value js = deleteRequest(query, true);

@@ -68,11 +68,11 @@ public:
   // Registration API
   bool login(const std::string &user, const std::string &pwd);
   std::string logout();
-  Json::Value retrieve();
   Json::Value registerHub(const std::string &url, 
                           const std::map<std::string, std::string> &assemblies,
                           const std::string &type = "");
-  std::string deleteHub(const std::string &ctrackhub);
+  Json::Value retrieveHub(const std::string &trackhub = "");
+  std::string deleteHub(const std::string &trackhub);
   
 
 private:
