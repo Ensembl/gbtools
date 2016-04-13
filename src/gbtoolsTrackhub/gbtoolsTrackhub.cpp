@@ -466,6 +466,16 @@ string Registry::logout()
 }
 
 
+// Retrieve current users' registered track hubs
+Json::Value Registry::retrieve()
+{
+  // Do the request
+  Json::Value js = sendRequest("/api/trackhub", "", true);
+
+  return js;
+}
+
+
 } // namespace trackhub
 
 

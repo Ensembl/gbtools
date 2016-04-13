@@ -68,6 +68,7 @@ public:
   // Registration API
   bool login(const std::string &user, const std::string &pwd);
   std::string logout();
+  Json::Value retrieve();
 
 private:
   curl_slist* getHeaders(const bool authorise);
