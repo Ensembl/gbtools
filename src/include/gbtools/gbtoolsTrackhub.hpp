@@ -81,6 +81,8 @@ public:
   Json::Value retrieveTrackDb(const std::string &trackdb);
   Json::Value deleteTrackDb(const std::string &trackdb);
   
+  // Query
+  std::map<std::string, std::string> getTrackUrls(const std::string &trackdb);
 
 private:
   curl_slist* getHeaders(const bool authorise);

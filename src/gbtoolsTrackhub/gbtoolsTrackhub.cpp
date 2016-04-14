@@ -121,6 +121,28 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 //    }
 //}
 
+// If this track has a URL, add it to the results. Also
+// recurse through any child tracks.
+void getTrackUrlsIter(Json::ValueIterator &iter, map<string, string> &result)
+{
+  Json::Value js_track = *iter;
+
+  // If this track has a URL then add it to the result
+  if (js_track["bigDataUrl"] != Json::nullValue &&
+      js_track["bigDataUrl"].isString())
+    {
+      string key = iter.key().asString();
+      result[key] = js_track["bigDataUrl"].asString();
+    }
+
+  // Also check if there are any child tracks to process
+  Json::Value js_children = js_track["members"];
+
+  for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
+    getTrackUrlsIter(child, result);
+
+  cout << endl;
+}
 
 
 } // unnamed namespace
@@ -612,30 +634,26 @@ Json::Value Registry::deleteTrackDb(const string &trackdb)
 }
 
 
+// Get a list of track names and URLs for the given trackDb ID
+map<string, string> Registry::getTrackUrls(const string &trackdb)
+{
+  map<string, string> result;
+
+  Json::Value trackdb_js = searchTrackDb(trackdb);
+  Json::Value tracks_js = trackdb_js["configuration"];
+
+  for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
+    {
+      getTrackUrlsIter(iter, result);
+    }
+
+  return result;
+}
+
 } // namespace trackhub
 
 
 
-void processTrack(Json::ValueIterator &iter, const int indent = 0)
-{
-  Json::Value js_track = *iter;
-
-  stringstream ss;
-  for (int i = 0; i < indent; ++i)
-    ss << " ";
-
-  cout << ss.str() << iter.key() << endl;
-
-  if (js_track["bigDataUrl"] != Json::nullValue)
-    cout << ss.str() << js_track["bigDataUrl"] << endl;
-
-  Json::Value js_children = js_track["members"];
-
-  for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
-    processTrack(child, indent + 2);
-
-  cout << endl;
-}
 
 // Temp function to allow testing of trackhub functions
 void testTrackhub()
