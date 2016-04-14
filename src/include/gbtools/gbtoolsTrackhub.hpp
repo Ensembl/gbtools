@@ -33,6 +33,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 
 #include <gbtools/gbtoolsCurl.hpp>
 
