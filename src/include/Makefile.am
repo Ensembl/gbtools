@@ -1,5 +1,7 @@
 
 nobase_include_HEADERS = \
+json/json.h \
+json/json-forwards.h \
 gbtools/gbtools.hpp \
 gbtools/gbtoolsCurl.hpp \
 gbtools/gbtoolsTrackhub.hpp \

@@ -35,6 +35,8 @@
 #include <list>
 #include <map>
 
+#include <json/json.h>
+
 #include <gbtools/gbtoolsCurl.hpp>
 
 
