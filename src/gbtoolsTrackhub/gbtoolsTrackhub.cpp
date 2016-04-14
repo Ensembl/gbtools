@@ -45,6 +45,20 @@ using namespace gbtools;
 namespace // unnamed namespace
 {
 
+#define API_INFO_PING "/api/info/ping"
+#define API_INFO_VERSION "/api/info/version"
+#define API_INFO_SPECIES "/api/info/species"
+#define API_INFO_ASSEMBLIES "/api/info/assemblies"
+#define API_INFO_TRACKHUBS "/api/info/trackhubs"
+#define API_SEARCH "/api/search"
+#define API_SEARCH_TRACKDB "/api/search/trackdb"
+#define API_LOGIN "/api/login"
+#define API_LOGOUT "/api/logout"
+#define API_TRACKHUB "/api/trackhub"
+#define API_TRACKDB "/api/trackdb"
+
+
+
 class CurlReadData
 {
 public:
@@ -333,7 +347,7 @@ bool Registry::ping()
 {
   bool result = false;
   
-  Json::Value js = getRequest("/api/info/ping");
+  Json::Value js = getRequest(API_INFO_PING);
 
   if (js["ping"].isInt())
     result = js["ping"].asInt();
@@ -346,7 +360,7 @@ string Registry::version()
 {
   string result("");
 
-  Json::Value js = getRequest("/api/info/version");
+  Json::Value js = getRequest(API_INFO_VERSION);
 
   if (js["release"].isString())
     result = js["release"].asString();
@@ -360,7 +374,7 @@ list<string> Registry::species()
 {
   list<string> result;
 
-  Json::Value js = getRequest("/api/info/species");
+  Json::Value js = getRequest(API_INFO_SPECIES);
 
   if (js.isArray())
     {
@@ -387,7 +401,7 @@ map<string, list<string>> Registry::assemblies()
   map<string, list<string>> result;
 
   bool ok = true;
-  Json::Value js = getRequest("/api/info/assemblies");
+  Json::Value js = getRequest(API_INFO_ASSEMBLIES);
 
   for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
     {
@@ -428,7 +442,7 @@ map<string, list<string>> Registry::assemblies()
 
 Json::Value Registry::trackhubs()
 {
-  Json::Value js = getRequest("/api/info/trackhubs");
+  Json::Value js = getRequest(API_INFO_TRACKHUBS);
   return js;
 }
 
@@ -449,7 +463,7 @@ Json::Value Registry::search(const string &search_str,
   stringstream payload_ss;
   payload_ss << payload_js;
   
-  Json::Value js = postRequest("/api/search", payload_ss.str());
+  Json::Value js = postRequest(API_SEARCH, payload_ss.str());
 
   return js;
 }
@@ -457,10 +471,10 @@ Json::Value Registry::search(const string &search_str,
 
 Json::Value Registry::searchTrackDb(const string &trackdb)
 {
-  string query("/api/search/trackdb/");
-  query += trackdb;
+  stringstream query_ss(API_SEARCH_TRACKDB);
+  query_ss << "/" << trackdb;
 
-  Json::Value js = getRequest(query);
+  Json::Value js = getRequest(query_ss.str());
   return js;
 }
 
@@ -475,7 +489,7 @@ bool Registry::login(const string &user, const string &pwd)
                 "password", pwd.c_str(), 
                 NULL);
 
-  Json::Value js = getRequest("/api/login");
+  Json::Value js = getRequest(API_LOGIN);
 
   CURLObjectSet(curl_object_get_, 
                 "username", NULL,
@@ -498,7 +512,7 @@ string Registry::logout()
   string result;
 
   // Do the request
-  Json::Value js = getRequest("/api/logout", true);
+  Json::Value js = getRequest(API_LOGOUT, true);
 
   // Check return value
   if (js["message"].isString())
@@ -537,7 +551,7 @@ Json::Value Registry::registerHub(const string &url,
   payload_ss << payload_js;
 
   // Do the request
-  Json::Value js = postRequest("/api/trackhub", payload_ss.str(), true);
+  Json::Value js = postRequest(API_TRACKHUB, payload_ss.str(), true);
 
   return js;
 }
@@ -547,7 +561,7 @@ Json::Value Registry::registerHub(const string &url,
 // given name, or all registered track hubs if no name is given.
 Json::Value Registry::retrieveHub(const string &trackhub)
 {
-  stringstream query_ss("/api/trackhub");
+  stringstream query_ss(API_TRACKHUB);
   
   if (trackhub.length() > 0)
     query_ss << "/" << trackhub;
@@ -563,7 +577,7 @@ string Registry::deleteHub(const string &trackhub)
 {
   string result;
 
-  string query("/api/trackhub/");
+  string query(API_TRACKHUB);
   query += trackhub;
 
   Json::Value js = deleteRequest(query, true);
@@ -577,11 +591,11 @@ string Registry::deleteHub(const string &trackhub)
 // Retrieve a registered trackdb.
 Json::Value Registry::retrieveTrackDb(const string &trackdb)
 {
-  string query("/api/trackdb/");
-  query += trackdb;
+  stringstream query_ss(API_TRACKDB);
+  query_ss << "/" << trackdb;
 
   // Do the request
-  Json::Value js = getRequest(query, true);
+  Json::Value js = getRequest(query_ss.str(), true);
 
   return js;
 }
@@ -589,10 +603,10 @@ Json::Value Registry::retrieveTrackDb(const string &trackdb)
 
 Json::Value Registry::deleteTrackDb(const string &trackdb)
 {
-  string query("/api/trackdb/");
-  query += trackdb;
+  stringstream query_ss(API_TRACKDB);
+  query_ss << "/" <<  trackdb;
 
-  Json::Value js = deleteRequest(query, true);
+  Json::Value js = deleteRequest(query_ss.str(), true);
 
   return js;
 }
