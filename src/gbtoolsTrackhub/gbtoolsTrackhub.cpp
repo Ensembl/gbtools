@@ -493,8 +493,8 @@ Json::Value Registry::search(const string &search_str,
 
 Json::Value Registry::searchTrackDb(const string &trackdb)
 {
-  stringstream query_ss(API_SEARCH_TRACKDB);
-  query_ss << "/" << trackdb;
+  stringstream query_ss;
+  query_ss << API_SEARCH_TRACKDB << "/" << trackdb;
 
   Json::Value js = getRequest(query_ss.str());
   return js;
@@ -583,7 +583,8 @@ Json::Value Registry::registerHub(const string &url,
 // given name, or all registered track hubs if no name is given.
 Json::Value Registry::retrieveHub(const string &trackhub)
 {
-  stringstream query_ss(API_TRACKHUB);
+  stringstream query_ss;
+  query_ss << API_TRACKHUB;
   
   if (trackhub.length() > 0)
     query_ss << "/" << trackhub;
@@ -613,8 +614,8 @@ string Registry::deleteHub(const string &trackhub)
 // Retrieve a registered trackdb.
 Json::Value Registry::retrieveTrackDb(const string &trackdb)
 {
-  stringstream query_ss(API_TRACKDB);
-  query_ss << "/" << trackdb;
+  stringstream query_ss;
+  query_ss << API_TRACKDB << "/" << trackdb;
 
   // Do the request
   Json::Value js = getRequest(query_ss.str(), true);
@@ -625,8 +626,8 @@ Json::Value Registry::retrieveTrackDb(const string &trackdb)
 
 Json::Value Registry::deleteTrackDb(const string &trackdb)
 {
-  stringstream query_ss(API_TRACKDB);
-  query_ss << "/" <<  trackdb;
+  stringstream query_ss;
+  query_ss << API_TRACKDB << "/" <<  trackdb;
 
   Json::Value js = deleteRequest(query_ss.str(), true);
 
