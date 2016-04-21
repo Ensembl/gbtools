@@ -14,12 +14,13 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile
 src/Makefile
 src/include/Makefile
-src/jsoncpp/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
 src/gbtoolsCurl/Makefile
 src/gbtoolsTrackhub/Makefile
 src/gbtoolsPfetch/Makefile
+src/jsoncpp/Makefile
+src/blatSrc/Makefile
 ])
 
 

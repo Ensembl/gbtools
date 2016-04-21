@@ -3,7 +3,8 @@
 
 AM_CPPFLAGS = \
 $(DEPS_CFLAGS) \
--I$(top_srcdir)/src/include
+-I$(top_srcdir)/src/include \
+-I$(top_srcdir)/src/include/blatSrc
 
 AM_CXXFLAGS = -std=c++0x -g -Wall
 
