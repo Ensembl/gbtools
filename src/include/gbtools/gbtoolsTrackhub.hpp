@@ -47,6 +47,43 @@ namespace trackhub
 {
 
 
+// Simple class to hold info about a trackDb (i.e. a collection of tracks from a particular hub)
+class TrackDb
+{
+public:
+  TrackDb(std::string id, 
+          std::string shortLabel,
+          std::string longLabel,
+          std::string url,
+          std::string scientific_name,
+          std::string assembly_name
+          ) 
+    : id_(id), 
+      hub_shortLabel_(shortLabel),
+      hub_longLabel_(longLabel),
+      hub_url_(url),
+      species_scientific_name_(scientific_name),
+      assembly_name_(assembly_name)
+  {} ;
+
+  std::string id() const { return id_; } ;
+  std::string name() const { return hub_shortLabel_; } ;
+  std::string description() const { return hub_longLabel_; } ;
+  std::string url() const { return hub_url_; } ;
+  std::string species() const { return species_scientific_name_; } ;
+  std::string assembly() const { return assembly_name_; } ;
+
+private:
+  std::string id_ ;
+  std::string hub_shortLabel_ ;
+  std::string hub_longLabel_ ;
+  std::string hub_url_ ;
+  std::string species_scientific_name_ ;
+  std::string assembly_name_ ;
+
+};
+
+
 /* Class for accessing the Ensembl Track Hub Registry API */
 class Registry
 {
@@ -64,8 +101,8 @@ public:
   Json::Value trackhubs();
 
   // Search API
-  std::list<std::string> search(const std::string &query, const std::string &species = "",
-                                const std::string &assembly = "", const std::string &hub = "");
+  std::list<TrackDb> search(const std::string &query, const std::string &species = "",
+                            const std::string &assembly = "", const std::string &hub = "");
   Json::Value searchTrackDb(const std::string &trackdb);
 
   // Registration API
@@ -106,6 +143,7 @@ private:
 
   Json::Reader json_reader_;
 };
+
 
 
 } // namespace trackhub

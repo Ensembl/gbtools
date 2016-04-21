@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <string>
+
 #include <curl/curl.h>
 
 #include <json/json.h>
@@ -472,12 +473,12 @@ Json::Value Registry::trackhubs()
 
 
 // Search for the given search string and optional filters
-list<string> Registry::search(const string &search_str,
-                              const string &species,
-                              const string &assembly,
-                              const string &hub)
+list<TrackDb> Registry::search(const string &search_str,
+                               const string &species,
+                               const string &assembly,
+                               const string &hub)
 {
-  list<string> result ;
+  list<TrackDb> result ;
 
   // Create a json-formatted message
   Json::Value payload_js;
@@ -499,7 +500,14 @@ list<string> Registry::search(const string &search_str,
       Json::Value item_js = *iter ;
 
       if (item_js["id"].isString())
-        result.push_back(item_js["id"].asString()) ;
+        {
+          result.push_back(TrackDb(item_js["id"].asString(), 
+                                   item_js["hub"]["shortLabel"].asString(),
+                                   item_js["hub"]["longLabel"].asString(),
+                                   item_js["hub"]["url"].asString(),
+                                   item_js["species"]["scientific_name"].asString(),
+                                   item_js["assembly"]["name"].asString() ));
+        }
     }
 
   return result ;
@@ -666,48 +674,7 @@ map<string, string> Registry::getTrackUrls(const string &trackdb)
   return result;
 }
 
+
 } // namespace trackhub
-
-
-
-
-// Temp function to allow testing of trackhub functions
-void testTrackhub()
-{
-  cout << "Testing" << endl;
-
-  trackhub::Registry registry;
-
-  cout << "Ping: " << registry.ping() << endl;
-  cout << "Version: " << registry.version() << endl;
-
-  list<string> species = registry.species();
-  //printList(species);
-
-  map<string, list<string>> assemblies = registry.assemblies();
-  //printMap(assemblies);
-
-  Json::Value trackhubs = registry.trackhubs();
-  //cout << trackhubs << endl;
-
-  //Json::Value mouse = registry.search("mouse");
-  //cout << mouse << endl;
-
-  //Json::Value trackdb = registry.searchTrackDb("AVOEP91mYAv0XSJwlEPl");
-  //cout << trackdb << endl;
-  //Json::Value tracks = trackdb["configuration"];
-  //stringstream indent;
-  //for (Json::ValueIterator iter = tracks.begin(); iter != tracks.end(); ++iter)
-  //  {
-  //    processTrack(iter);
-  //  }
-
-//map<string, string> mymap;
-//mymap["araTha1"] = "GCA_000001735.1";
-//mymap["ricCom1"] = "GCA_000151685.2";
-//mymap["braRap1"] = "GCA_000309985.1";
-//registry.registerHub("http://genome-test.cse.ucsc.edu/~hiram/hubs/Plants/hub.txt", mymap);
-
-}
 
 } // namespace gbtools
