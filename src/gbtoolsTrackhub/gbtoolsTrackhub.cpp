@@ -45,6 +45,8 @@ using namespace gbtools;
 namespace // unnamed namespace
 {
 
+#define TRACKHUB_REGISTRY_HOST "https://www.trackhubregistry.org"
+
 #define API_INFO_PING "/api/info/ping"
 #define API_INFO_VERSION "/api/info/version"
 #define API_INFO_SPECIES "/api/info/species"
@@ -158,7 +160,7 @@ namespace trackhub
 
 Registry::Registry()
 {
-  host_ = "https://www.trackhubregistry.org";
+  host_ = TRACKHUB_REGISTRY_HOST;
 
   // Set up curl objects for GET/POST requests. Set the properties here that will be 
   // the same for all requests.  */
@@ -470,11 +472,13 @@ Json::Value Registry::trackhubs()
 
 
 // Search for the given search string and optional filters
-Json::Value Registry::search(const string &search_str,
-                             const string &species,
-                             const string &assembly,
-                             const string &hub)
+list<string> Registry::search(const string &search_str,
+                              const string &species,
+                              const string &assembly,
+                              const string &hub)
 {
+  list<string> result ;
+
   // Create a json-formatted message
   Json::Value payload_js;
   payload_js["query"] = search_str;
@@ -487,7 +491,18 @@ Json::Value Registry::search(const string &search_str,
   
   Json::Value js = postRequest(API_SEARCH, payload_ss.str());
 
-  return js;
+  // Loop through all items in the result and extract the trackDb IDs
+  Json::Value items_js = js["items"];
+
+  for (Json::ValueIterator iter = items_js.begin(); iter != items_js.end(); ++iter)
+    {
+      Json::Value item_js = *iter ;
+
+      if (item_js["id"].isString())
+        result.push_back(item_js["id"].asString()) ;
+    }
+
+  return result ;
 }
 
 
@@ -675,10 +690,10 @@ void testTrackhub()
   Json::Value trackhubs = registry.trackhubs();
   //cout << trackhubs << endl;
 
-  Json::Value mouse = registry.search("mouse");
+  //Json::Value mouse = registry.search("mouse");
   //cout << mouse << endl;
 
-  Json::Value trackdb = registry.searchTrackDb("AVOEP91mYAv0XSJwlEPl");
+  //Json::Value trackdb = registry.searchTrackDb("AVOEP91mYAv0XSJwlEPl");
   //cout << trackdb << endl;
   //Json::Value tracks = trackdb["configuration"];
   //stringstream indent;

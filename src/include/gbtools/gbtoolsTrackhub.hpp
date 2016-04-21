@@ -64,8 +64,8 @@ public:
   Json::Value trackhubs();
 
   // Search API
-  Json::Value search(const std::string &query, const std::string &species = "",
-                     const std::string &assembly = "", const std::string &hub = "");
+  std::list<std::string> search(const std::string &query, const std::string &species = "",
+                                const std::string &assembly = "", const std::string &hub = "");
   Json::Value searchTrackDb(const std::string &trackdb);
 
   // Registration API
