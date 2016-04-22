@@ -152,12 +152,13 @@ public:
   TrackDb searchTrackDb(const std::string &trackdb);
 
   bool login(const std::string &user, const std::string &pwd);
-  std::string logout();
+  bool logout();
 
   Json::Value registerHub(const std::string &url, 
                           const std::map<std::string, std::string> &assemblies,
-                          const std::string &type = "");
-  Json::Value retrieveHub(const std::string &trackhub = "");
+                          const std::string &type = "",
+                          const bool is_public = false);
+  std::list<TrackDb> retrieveHub(const std::string &trackhub = "");
   std::string deleteHub(const std::string &trackhub);
 
   Json::Value retrieveTrackDb(const std::string &trackdb);
@@ -166,7 +167,7 @@ public:
   //
   // Query
   //
-  std::map<std::string, std::string> getTrackUrls(const std::string &trackdb);
+  bool loggedIn();
 
 private:
   curl_slist* getHeaders(const bool authorise);

@@ -565,17 +565,17 @@ bool Registry::login(const string &user, const string &pwd)
 }
 
 // Log out of the Registry
-string Registry::logout()
+bool Registry::logout()
 {
-  string result;
+  bool result = false;
 
   // Do the request
   Json::Value js = getRequest(API_LOGOUT, true);
 
-  // Check return value
+  // Check return value (should be a message saying logged out ok)
   if (js["message"].isString())
     {
-      result = js["message"].asString();
+      result = true;
       user_.clear();
       auth_token_.clear();
     }
@@ -593,7 +593,8 @@ string Registry::logout()
 // type: "genomics", "epigenomics", "transcriptomics" or "proteomics"
 Json::Value Registry::registerHub(const string &url,
                                   const map<string, string> &assemblies,
-                                  const string &type)
+                                  const string &type,
+                                  const bool is_public)
 {
   // Create a json-formatted message
   Json::Value payload_js;
@@ -605,6 +606,11 @@ Json::Value Registry::registerHub(const string &url,
   if (type.length() > 0)
     payload_js["type"] = type;
 
+  if (is_public)
+    payload_js["public"] = 1;
+  else
+    payload_js["public"] = 0;
+
   stringstream payload_ss;
   payload_ss << payload_js;
 
@@ -615,10 +621,12 @@ Json::Value Registry::registerHub(const string &url,
 }
 
 
-// Retrieve current users' registered track hubs. Gets the trackhub with the
+// Retrieve all trackDbs for the current users' registered hubs. Gets the trackhub with the
 // given name, or all registered track hubs if no name is given.
-Json::Value Registry::retrieveHub(const string &trackhub)
+list<TrackDb> Registry::retrieveHub(const string &trackhub)
 {
+  list<TrackDb> result;
+
   stringstream query_ss;
   query_ss << API_TRACKHUB;
   
@@ -627,8 +635,33 @@ Json::Value Registry::retrieveHub(const string &trackhub)
 
   // Do the request
   Json::Value js = getRequest(query_ss.str(), true);
+  
+  // Loop through all items in the returned array
+  for (Json::ValueIterator hub_iter = js.begin(); hub_iter != js.end(); ++hub_iter)
+    {
+      // Loop through all trackdbs in this hub
+      Json::Value js_trackdbs = (*hub_iter)["trackdbs"];
+      
+      for (Json::ValueIterator trackdb_iter = js_trackdbs.begin(); trackdb_iter != js_trackdbs.end(); ++trackdb_iter)
+        {
+          string uri = (*trackdb_iter)["uri"].asString();
 
-  return js;
+          // Chop off the host etc. to get the trackdb id at the end of the uri
+          stringstream ss;
+          ss << host_ << API_TRACKDB << "/" ;
+          string host = ss.str();
+          
+          if (uri.length() >= host.length() &&
+              strncmp(uri.c_str(), host.c_str(), host.length()) == 0)
+            {
+              const char *trackdb_id = uri.c_str() + host.length();
+              TrackDb trackdb = searchTrackDb(trackdb_id);
+              result.push_back(trackdb);
+            }
+        }
+    }
+  
+  return result;
 }
 
 
@@ -668,6 +701,11 @@ Json::Value Registry::deleteTrackDb(const string &trackdb)
   Json::Value js = deleteRequest(query_ss.str(), true);
 
   return js;
+}
+
+bool Registry::loggedIn()
+{
+  return (!user_.empty() && !auth_token_.empty());
 }
 
 
