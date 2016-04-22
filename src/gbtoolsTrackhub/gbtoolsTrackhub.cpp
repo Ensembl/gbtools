@@ -46,6 +46,8 @@ using namespace gbtools;
 namespace // unnamed namespace
 {
 
+using namespace gbtools::trackhub;
+
 #define TRACKHUB_REGISTRY_HOST "https://www.trackhubregistry.org"
 
 #define API_INFO_PING "/api/info/ping"
@@ -108,43 +110,31 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 }
 
 
-//void printList(list<string> lst)
-//{
-//  for (auto &it : lst)
-//    cout << it << ", ";
-//}
-//
-//void printMap(map<string, list<string>> m)
-//{
-//  for (auto &iter : m)
-//    {
-//      cout << iter.first << ":  ";
-//      printList(iter.second);
-//      cout << endl;
-//    }
-//}
-
-// If this track has a URL, add it to the results. Also
-// recurse through any child tracks.
-void getTrackUrlsIter(Json::ValueIterator &iter, map<string, string> &result)
+// Create a Track class for the track in the given json and add it to the given list.
+// Recurse through any child tracks and add them to the new Track class's children.
+// Also add its file type (if it has one) to the list of types.
+void getTracks(Json::ValueIterator &iter, 
+               list<Track> &track_list,
+               list<string> &file_types)
 {
   Json::Value js_track = *iter;
 
-  // If this track has a URL then add it to the result
-  if (js_track["bigDataUrl"] != Json::nullValue &&
-      js_track["bigDataUrl"].isString())
-    {
-      string key = iter.key().asString();
-      result[key] = js_track["bigDataUrl"].asString();
-    }
+  Track track(js_track["track"].asString(),
+              js_track["shortLabel"].asString(),
+              js_track["bigDataUrl"].asString(),
+              js_track["type"].asString()
+              );
 
-  // Also check if there are any child tracks to process
+  track_list.push_back(track);
+
+  if (js_track["type"].isString())
+    file_types.push_back(js_track["type"].asString());
+
+  // Recurse through any child tracks
   Json::Value js_children = js_track["members"];
 
   for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
-    getTrackUrlsIter(child, result);
-
-  cout << endl;
+    getTracks(child, track.children_, file_types);
 }
 
 
@@ -191,6 +181,9 @@ Registry::Registry()
 Registry::~Registry()
 {
 }
+
+
+
 
 
 // Return the headers for GET requests
@@ -501,12 +494,8 @@ list<TrackDb> Registry::search(const string &search_str,
 
       if (item_js["id"].isString())
         {
-          result.push_back(TrackDb(item_js["id"].asString(), 
-                                   item_js["hub"]["shortLabel"].asString(),
-                                   item_js["hub"]["longLabel"].asString(),
-                                   item_js["hub"]["url"].asString(),
-                                   item_js["species"]["scientific_name"].asString(),
-                                   item_js["assembly"]["name"].asString() ));
+          TrackDb trackdb = searchTrackDb(item_js["id"].asString()) ;
+          result.push_back(trackdb) ;
         }
     }
 
@@ -514,13 +503,37 @@ list<TrackDb> Registry::search(const string &search_str,
 }
 
 
-Json::Value Registry::searchTrackDb(const string &trackdb)
+TrackDb Registry::searchTrackDb(const string &trackdb_id)
 {
   stringstream query_ss;
-  query_ss << API_SEARCH_TRACKDB << "/" << trackdb;
+  query_ss << API_SEARCH_TRACKDB << "/" << trackdb_id;
 
   Json::Value js = getRequest(query_ss.str());
-  return js;
+
+  // Get the lists of track info and file types
+  Json::Value tracks_js = js["configuration"];
+  list<Track> tracks;
+  list<string> file_types;
+
+  for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
+    {
+      getTracks(iter, tracks, file_types);
+    }
+
+  TrackDb trackdb(trackdb_id, 
+                  js["hub"]["shortLabel"].asString(),
+                  js["hub"]["longLabel"].asString(),
+                  js["hub"]["url"].asString(),
+                  js["species"]["scientific_name"].asString(),
+                  js["assembly"]["name"].asString(),
+                  js["type"].asString(),
+                  js["status"]["tracks"]["total"].asInt(),
+                  js["status"]["tracks"]["with_data"]["total"].asInt(),
+                  file_types,
+                  tracks
+                  );
+
+  return trackdb;
 }
 
 
@@ -655,23 +668,6 @@ Json::Value Registry::deleteTrackDb(const string &trackdb)
   Json::Value js = deleteRequest(query_ss.str(), true);
 
   return js;
-}
-
-
-// Get a list of track names and URLs for the given trackDb ID
-map<string, string> Registry::getTrackUrls(const string &trackdb)
-{
-  map<string, string> result;
-
-  Json::Value trackdb_js = searchTrackDb(trackdb);
-  Json::Value tracks_js = trackdb_js["configuration"];
-
-  for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
-    {
-      getTrackUrlsIter(iter, result);
-    }
-
-  return result;
 }
 
 

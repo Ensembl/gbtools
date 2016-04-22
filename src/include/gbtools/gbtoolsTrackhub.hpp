@@ -46,24 +46,62 @@ namespace gbtools
 namespace trackhub
 {
 
+// Class to hold info about a track
+class Track
+{
+public:
+  Track(std::string name,
+        std::string shortLabel,
+        std::string url,
+        std::string file_type) 
+    : name_(name),
+      shortLabel_(shortLabel),
+      url_(url),
+      file_type_(file_type)
+  {};
 
-// Simple class to hold info about a trackDb (i.e. a collection of tracks from a particular hub)
+  std::string name() const { return name_; };
+  std::string description() const { return shortLabel_; };
+  std::string url() const { return url_; };
+  std::list<Track> children() const { return children_; };
+
+  std::list<Track> children_;
+
+private:
+  std::string name_;
+  std::string shortLabel_;
+  std::string url_;
+  std::string file_type_;
+};
+
+
+// Class to hold info about a trackDb (i.e. a collection of tracks from a particular hub)
 class TrackDb
 {
 public:
-  TrackDb(std::string id, 
-          std::string shortLabel,
-          std::string longLabel,
-          std::string url,
-          std::string scientific_name,
-          std::string assembly_name
+  TrackDb(const std::string &id, 
+          const std::string &shortLabel,
+          const std::string &longLabel,
+          const std::string &url,
+          const std::string &scientific_name,
+          const std::string &assembly_name,
+          const std::string &type,
+          const int num_tracks,
+          const int num_with_data,
+          const std::list<std::string> &file_types,
+          const std::list<Track> &tracks
           ) 
     : id_(id), 
       hub_shortLabel_(shortLabel),
       hub_longLabel_(longLabel),
       hub_url_(url),
       species_scientific_name_(scientific_name),
-      assembly_name_(assembly_name)
+      assembly_name_(assembly_name),
+      type_(type),
+      num_tracks_(num_tracks),
+      num_with_data_(num_with_data),
+      file_types_(file_types),
+      tracks_(tracks)
   {} ;
 
   std::string id() const { return id_; } ;
@@ -72,6 +110,9 @@ public:
   std::string url() const { return hub_url_; } ;
   std::string species() const { return species_scientific_name_; } ;
   std::string assembly() const { return assembly_name_; } ;
+  int num_tracks() const { return num_tracks_; } ;
+  int num_with_data() const { return num_with_data_; } ;
+  std::list<Track> tracks() const { return tracks_; } ;
 
 private:
   std::string id_ ;
@@ -80,7 +121,11 @@ private:
   std::string hub_url_ ;
   std::string species_scientific_name_ ;
   std::string assembly_name_ ;
-
+  std::string type_ ;
+  int num_tracks_;
+  int num_with_data_;
+  std::list<std::string> file_types_;
+  std::list<Track> tracks_;
 };
 
 
@@ -93,19 +138,19 @@ public:
   Registry();
   ~Registry();
 
-  // Info API
+  //
+  // API functions
+  //
   bool ping();
   std::string version();
   std::list<std::string> species();
   std::map<std::string, std::list<std::string>> assemblies();
   Json::Value trackhubs();
 
-  // Search API
   std::list<TrackDb> search(const std::string &query, const std::string &species = "",
                             const std::string &assembly = "", const std::string &hub = "");
-  Json::Value searchTrackDb(const std::string &trackdb);
+  TrackDb searchTrackDb(const std::string &trackdb);
 
-  // Registration API
   bool login(const std::string &user, const std::string &pwd);
   std::string logout();
 
@@ -117,8 +162,10 @@ public:
 
   Json::Value retrieveTrackDb(const std::string &trackdb);
   Json::Value deleteTrackDb(const std::string &trackdb);
-  
+
+  //
   // Query
+  //
   std::map<std::string, std::string> getTrackUrls(const std::string &trackdb);
 
 private:
