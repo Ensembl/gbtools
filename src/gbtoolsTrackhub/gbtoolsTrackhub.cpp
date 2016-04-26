@@ -611,11 +611,10 @@ Json::Value Registry::registerHub(const string &url,
   else
     payload_js["public"] = 0;
 
-  stringstream payload_ss;
-  payload_ss << payload_js;
+  string payload = json_writer_.write(payload_js) ;
 
   // Do the request
-  Json::Value js = postRequest(API_TRACKHUB, payload_ss.str(), true);
+  Json::Value js = postRequest(API_TRACKHUB, payload, true);
 
   return js;
 }

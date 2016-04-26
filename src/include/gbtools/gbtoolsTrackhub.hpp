@@ -112,6 +112,7 @@ public:
   std::string assembly() const { return assembly_name_; } ;
   int num_tracks() const { return num_tracks_; } ;
   int num_with_data() const { return num_with_data_; } ;
+  std::list<std::string> file_types() const { return file_types_; } ;
   std::list<Track> tracks() const { return tracks_; } ;
 
 private:
@@ -190,6 +191,7 @@ private:
   CURLObject curl_object_delete_;
 
   Json::Reader json_reader_;
+  Json::FastWriter json_writer_;
 };
 
 
