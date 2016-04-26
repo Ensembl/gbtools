@@ -505,33 +505,39 @@ list<TrackDb> Registry::search(const string &search_str,
 
 TrackDb Registry::searchTrackDb(const string &trackdb_id)
 {
-  stringstream query_ss;
-  query_ss << API_SEARCH_TRACKDB << "/" << trackdb_id;
+  TrackDb trackdb;
 
-  Json::Value js = getRequest(query_ss.str());
-
-  // Get the lists of track info and file types
-  Json::Value tracks_js = js["configuration"];
-  list<Track> tracks;
-  list<string> file_types;
-
-  for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
+  if (!trackdb_id.empty())
     {
-      getTracks(iter, tracks, file_types);
-    }
+      stringstream query_ss;
+      query_ss << API_SEARCH_TRACKDB << "/" << trackdb_id;
 
-  TrackDb trackdb(trackdb_id, 
-                  js["hub"]["shortLabel"].asString(),
-                  js["hub"]["longLabel"].asString(),
-                  js["hub"]["url"].asString(),
-                  js["species"]["scientific_name"].asString(),
-                  js["assembly"]["name"].asString(),
-                  js["type"].asString(),
-                  js["status"]["tracks"]["total"].asInt(),
-                  js["status"]["tracks"]["with_data"]["total"].asInt(),
-                  file_types,
-                  tracks
-                  );
+      Json::Value js = getRequest(query_ss.str());
+
+      // Get the lists of track info and file types
+      Json::Value tracks_js = js["configuration"];
+      list<Track> tracks;
+      list<string> file_types;
+
+      for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
+        {
+          getTracks(iter, tracks, file_types);
+        }
+
+      trackdb = TrackDb(trackdb_id, 
+                        js["hub"]["name"].asString(),
+                        js["hub"]["shortLabel"].asString(),
+                        js["hub"]["longLabel"].asString(),
+                        js["hub"]["url"].asString(),
+                        js["species"]["scientific_name"].asString(),
+                        js["assembly"]["name"].asString(),
+                        js["type"].asString(),
+                        js["status"]["tracks"]["total"].asInt(),
+                        js["status"]["tracks"]["with_data"]["total"].asInt(),
+                        file_types,
+                        tracks
+                        );
+    }
 
   return trackdb;
 }

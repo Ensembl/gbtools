@@ -79,7 +79,20 @@ private:
 class TrackDb
 {
 public:
+  TrackDb()
+    : id_(""), 
+      hub_shortLabel_(""),
+      hub_longLabel_(""),
+      hub_url_(""),
+      species_scientific_name_(""),
+      assembly_name_(""),
+      type_(""),
+      num_tracks_(0),
+      num_with_data_(0)
+  {} ;
+
   TrackDb(const std::string &id, 
+          const std::string &name,
           const std::string &shortLabel,
           const std::string &longLabel,
           const std::string &url,
@@ -92,6 +105,7 @@ public:
           const std::list<Track> &tracks
           ) 
     : id_(id), 
+      hub_name_(name),
       hub_shortLabel_(shortLabel),
       hub_longLabel_(longLabel),
       hub_url_(url),
@@ -117,6 +131,7 @@ public:
 
 private:
   std::string id_ ;
+  std::string hub_name_ ;
   std::string hub_shortLabel_ ;
   std::string hub_longLabel_ ;
   std::string hub_url_ ;
