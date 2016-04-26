@@ -158,28 +158,30 @@ public:
   //
   // API functions
   //
-  bool ping();
-  std::string version();
-  std::list<std::string> species();
-  std::map<std::string, std::list<std::string>> assemblies();
-  Json::Value trackhubs();
+  bool ping(std::string &err_msg);
+  std::string version(std::string &err_msg);
+  std::list<std::string> species(std::string &err_msg);
+  std::map<std::string, std::list<std::string>> assemblies(std::string &err_msg);
+  Json::Value trackhubs(std::string &err_msg);
 
-  std::list<TrackDb> search(const std::string &query, const std::string &species = "",
-                            const std::string &assembly = "", const std::string &hub = "");
-  TrackDb searchTrackDb(const std::string &trackdb);
+  std::list<TrackDb> search(const std::string &query, const std::string &species,
+                            const std::string &assembly, const std::string &hub,
+                            std::string &err_msg);
+  TrackDb searchTrackDb(const std::string &trackdb, std::string &err_msg);
 
-  bool login(const std::string &user, const std::string &pwd);
-  bool logout();
+  bool login(const std::string &user, const std::string &pwd, std::string &err_msg);
+  bool logout(std::string &err_msg);
 
   Json::Value registerHub(const std::string &url, 
                           const std::map<std::string, std::string> &assemblies,
-                          const std::string &type = "",
-                          const bool is_public = false);
-  std::list<TrackDb> retrieveHub(const std::string &trackhub = "");
-  std::string deleteHub(const std::string &trackhub);
+                          const std::string &type,
+                          const bool is_public,
+                          std::string &err_msg);
+  std::list<TrackDb> retrieveHub(const std::string &trackhub, std::string &err_msg);
+  std::string deleteHub(const std::string &trackhub, std::string &err_msg);
 
-  Json::Value retrieveTrackDb(const std::string &trackdb);
-  Json::Value deleteTrackDb(const std::string &trackdb);
+  Json::Value retrieveTrackDb(const std::string &trackdb, std::string &err_msg);
+  Json::Value deleteTrackDb(const std::string &trackdb, std::string &err_msg);
 
   //
   // Query
@@ -190,13 +192,13 @@ private:
   curl_slist* getHeaders(const bool authorise);
   curl_slist* postHeaders(const bool authorise);
 
-  std::string doGetRequest(const std::string &url, const bool authorise);
-  std::string doPostRequest(const std::string &url, const std::string &postfields, const bool authorise);
-  std::string doDeleteRequest(const std::string &url, const bool authorise);
+  std::string doGetRequest(const std::string &url, const bool authorise, long *response_code = NULL);
+  std::string doPostRequest(const std::string &url, const std::string &postfields, const bool authorise, long *response_code = NULL);
+  std::string doDeleteRequest(const std::string &url, const bool authorise, long *response_code = NULL);
 
-  Json::Value getRequest(const std::string &request, const bool authorise = false);
-  Json::Value postRequest(const std::string &request, const std::string &postfields, const bool authorise = false);
-  Json::Value deleteRequest(const std::string &request, const bool authorise = false);
+  Json::Value getRequest(const std::string &request, const bool authorise, std::string &err_msg);
+  Json::Value postRequest(const std::string &request, const std::string &postfields, const bool authorise, std::string &err_msg);
+  Json::Value deleteRequest(const std::string &request, const bool authorise, std::string &err_msg);
 
   std::string host_;
   std::string user_;

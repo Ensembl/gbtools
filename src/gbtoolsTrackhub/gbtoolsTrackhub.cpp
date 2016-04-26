@@ -63,6 +63,19 @@ using namespace gbtools::trackhub;
 #define API_TRACKDB "/api/trackdb"
 
 
+// This enum lists the expected return codes from the trackhub registry api
+enum class ResponseCode: long
+{   UNSET = 0,
+    OK = 200,
+    CREATED = 201,
+    BAD_REQUEST = 400,
+    INVALID_CREDENTIALS = 401,
+    NOT_FOUND = 404,
+    GONE = 410,
+    SERVER_ERR = 500,
+    UNAVAILABLE = 503
+    } ;
+
 
 class CurlReadData
 {
@@ -135,6 +148,52 @@ void getTracks(Json::ValueIterator &iter,
 
   for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
     getTracks(child, track.children_, file_types);
+}
+
+// Process the results of a request. If the response code indicates an error, set the error
+// message. Returns the contents of the buffer in json format.
+Json::Value processRequestResult(const string &buffer,
+                                 const long response_code,
+                                 Json::Reader reader,
+                                 string &err_msg)
+{
+  Json::Value js;
+  reader.parse(buffer, js);
+
+  stringstream err_ss;
+
+  ResponseCode code = (ResponseCode)response_code;
+
+  switch (code)
+    {
+    case ResponseCode::OK:
+      break;
+    case ResponseCode::CREATED:
+      break;
+    case ResponseCode::BAD_REQUEST:
+      err_ss << "Bad request: " << js["error"].asString();
+      break;
+    case ResponseCode::INVALID_CREDENTIALS:
+      err_ss << "Invalid credentials: " << js["error"].asString();
+      break;
+    case ResponseCode::NOT_FOUND:
+      err_ss << "Not found: " << js["error"].asString();
+      break;
+    case ResponseCode::GONE:
+      err_ss << "Response '" <<  response_code << "': server gone";
+      break;
+    case ResponseCode::SERVER_ERR:
+      err_ss << "Response '" <<  response_code << "': internal server error";
+      break;
+    case ResponseCode::UNAVAILABLE:
+      err_ss << "Response '" <<  response_code << "': server unavailable";
+      break;
+    default:
+      err_ss << "Unrecognised response code '" <<  response_code << "'";
+      break;
+    } ;
+
+  return js;
 }
 
 
@@ -235,7 +294,8 @@ curl_slist* Registry::postHeaders(const bool authorise)
 
 // Does the work to send the given GET request using CURL
 string Registry::doGetRequest(const string &url,
-                              const bool authorise)
+                              const bool authorise,
+                              long *response_code)
 {   
   string result("");
 
@@ -248,6 +308,9 @@ string Registry::doGetRequest(const string &url,
                 NULL);
 
   CURLObjectStatus res = CURLObjectPerform(curl_object_get_, FALSE);
+
+  if (response_code)
+    g_object_get(curl_object_get_, "response-code", response_code, NULL) ;
   
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
@@ -261,7 +324,8 @@ string Registry::doGetRequest(const string &url,
 
 // Does the work to send the given DELETE request using CURL
 string Registry::doDeleteRequest(const string &url,
-                                 const bool authorise)
+                                 const bool authorise,
+                                 long *response_code)
 {   
   string result("");
 
@@ -275,6 +339,9 @@ string Registry::doDeleteRequest(const string &url,
 
   CURLObjectStatus res = CURLObjectPerform(curl_object_delete_, FALSE);
   
+  if (response_code)
+    g_object_get(curl_object_get_, "response-code", response_code, NULL) ;
+
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
 
@@ -289,7 +356,8 @@ string Registry::doDeleteRequest(const string &url,
 // Does the work to send the given POST request using CURL
 string Registry::doPostRequest(const string &url, 
                                const string &postfields,
-                               const bool authorise)
+                               const bool authorise,
+                               long *response_code)
 {   
   string result("");
 
@@ -310,6 +378,9 @@ string Registry::doPostRequest(const string &url,
 #endif
 
   CURLObjectStatus res = CURLObjectPerform(curl_object_post_, FALSE);
+
+  if(response_code)
+    g_object_get(curl_object_post_, "response-code", response_code, NULL) ;
   
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
@@ -323,49 +394,58 @@ string Registry::doPostRequest(const string &url,
 
 
 Json::Value Registry::getRequest(const string &request,
-                                 const bool authorise)
+                                 const bool authorise,
+                                 string &err_msg)
 {
   Json::Value js;
   
   string url = host_ + request;
-  string buffer = doGetRequest(url, authorise);
-  json_reader_.parse(buffer, js);
+  long response_code = 0 ;
+  
+  string buffer = doGetRequest(url, authorise, &response_code);
+  js = processRequestResult(buffer, response_code, json_reader_, err_msg) ;
 
   return js;
 }
 
 Json::Value Registry::postRequest(const string &request,
                                   const string &postfields,
-                                  const bool authorise)
+                                  const bool authorise,
+                                  string &err_msg)
 {
   Json::Value js;
   
   string url = host_ + request;
-  string buffer = doPostRequest(url, postfields, authorise);
-  json_reader_.parse(buffer, js);
+  long response_code = 0 ;
+
+  string buffer = doPostRequest(url, postfields, authorise, &response_code);
+  js = processRequestResult(buffer, response_code, json_reader_, err_msg) ;
 
   return js;
 }
 
 Json::Value Registry::deleteRequest(const string &request,
-                                    const bool authorise)
+                                    const bool authorise,
+                                    string &err_msg)
 {
   Json::Value js;
   
   string url = host_ + request;
-  string buffer = doDeleteRequest(url, authorise);
-  json_reader_.parse(buffer, js);
+  long response_code = 0 ;
+
+  string buffer = doDeleteRequest(url, authorise, &response_code);
+  js = processRequestResult(buffer, response_code, json_reader_, err_msg) ;
 
   return js;
 }
 
 
 // Ping the Registry server. Returns true if ok.
-bool Registry::ping()
+bool Registry::ping(string &err_msg)
 {
   bool result = false;
   
-  Json::Value js = getRequest(API_INFO_PING);
+  Json::Value js = getRequest(API_INFO_PING, false, err_msg);
 
   if (js["ping"].isInt())
     result = js["ping"].asInt();
@@ -374,11 +454,11 @@ bool Registry::ping()
 }
 
 // Get the Registry version number
-string Registry::version()
+string Registry::version(string &err_msg)
 {
   string result("");
 
-  Json::Value js = getRequest(API_INFO_VERSION);
+  Json::Value js = getRequest(API_INFO_VERSION, false, err_msg);
 
   if (js["release"].isString())
     result = js["release"].asString();
@@ -388,11 +468,11 @@ string Registry::version()
 
 
 // Get the list of species in the Registry
-list<string> Registry::species()
+list<string> Registry::species(string &err_msg)
 {
   list<string> result;
 
-  Json::Value js = getRequest(API_INFO_SPECIES);
+  Json::Value js = getRequest(API_INFO_SPECIES, false, err_msg);
 
   if (js.isArray())
     {
@@ -414,12 +494,12 @@ list<string> Registry::species()
 }
 
 // Get the list of assemblies in the Registry per species name
-map<string, list<string>> Registry::assemblies()
+map<string, list<string>> Registry::assemblies(string &err_msg)
 {
   map<string, list<string>> result;
 
   bool ok = true;
-  Json::Value js = getRequest(API_INFO_ASSEMBLIES);
+  Json::Value js = getRequest(API_INFO_ASSEMBLIES, false, err_msg);
 
   for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
     {
@@ -458,9 +538,9 @@ map<string, list<string>> Registry::assemblies()
 }
 
 
-Json::Value Registry::trackhubs()
+Json::Value Registry::trackhubs(string &err_msg)
 {
-  Json::Value js = getRequest(API_INFO_TRACKHUBS);
+  Json::Value js = getRequest(API_INFO_TRACKHUBS, false, err_msg);
   return js;
 }
 
@@ -469,7 +549,8 @@ Json::Value Registry::trackhubs()
 list<TrackDb> Registry::search(const string &search_str,
                                const string &species,
                                const string &assembly,
-                               const string &hub)
+                               const string &hub,
+                               string &err_msg)
 {
   list<TrackDb> result ;
 
@@ -483,7 +564,7 @@ list<TrackDb> Registry::search(const string &search_str,
   stringstream payload_ss;
   payload_ss << payload_js;
   
-  Json::Value js = postRequest(API_SEARCH, payload_ss.str());
+  Json::Value js = postRequest(API_SEARCH, payload_ss.str(), false, err_msg);
 
   // Loop through all items in the result and extract the trackDb IDs
   Json::Value items_js = js["items"];
@@ -494,7 +575,8 @@ list<TrackDb> Registry::search(const string &search_str,
 
       if (item_js["id"].isString())
         {
-          TrackDb trackdb = searchTrackDb(item_js["id"].asString()) ;
+          string track_err_msg;
+          TrackDb trackdb = searchTrackDb(item_js["id"].asString(), track_err_msg) ;
           result.push_back(trackdb) ;
         }
     }
@@ -503,7 +585,7 @@ list<TrackDb> Registry::search(const string &search_str,
 }
 
 
-TrackDb Registry::searchTrackDb(const string &trackdb_id)
+TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
 {
   TrackDb trackdb;
 
@@ -512,7 +594,7 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id)
       stringstream query_ss;
       query_ss << API_SEARCH_TRACKDB << "/" << trackdb_id;
 
-      Json::Value js = getRequest(query_ss.str());
+      Json::Value js = getRequest(query_ss.str(), false, err_msg);
 
       // Get the lists of track info and file types
       Json::Value tracks_js = js["configuration"];
@@ -544,7 +626,7 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id)
 
 
 // Log in to the Registry
-bool Registry::login(const string &user, const string &pwd)
+bool Registry::login(const string &user, const string &pwd, string &err_msg)
 {
   bool ok = false;
 
@@ -553,7 +635,7 @@ bool Registry::login(const string &user, const string &pwd)
                 "password", pwd.c_str(), 
                 NULL);
 
-  Json::Value js = getRequest(API_LOGIN);
+  Json::Value js = getRequest(API_LOGIN, false, err_msg);
 
   CURLObjectSet(curl_object_get_, 
                 "username", NULL,
@@ -571,14 +653,14 @@ bool Registry::login(const string &user, const string &pwd)
 }
 
 // Log out of the Registry
-bool Registry::logout()
+bool Registry::logout(string &err_msg)
 {
   bool result = false;
 
   if (loggedIn())
     {
       // Do the request
-      Json::Value js = getRequest(API_LOGOUT, true);
+      Json::Value js = getRequest(API_LOGOUT, true, err_msg);
 
       // Check return value (should be a message saying logged out ok)
       if (js["message"].isString())
@@ -607,7 +689,8 @@ bool Registry::logout()
 Json::Value Registry::registerHub(const string &url,
                                   const map<string, string> &assemblies,
                                   const string &type,
-                                  const bool is_public)
+                                  const bool is_public,
+                                  string &err_msg)
 {
   Json::Value js;
 
@@ -631,7 +714,7 @@ Json::Value Registry::registerHub(const string &url,
       string payload = json_writer_.write(payload_js) ;
 
       // Do the request
-      js = postRequest(API_TRACKHUB, payload, true);
+      js = postRequest(API_TRACKHUB, payload, true, err_msg);
     }
   else
     {
@@ -644,7 +727,7 @@ Json::Value Registry::registerHub(const string &url,
 
 // Retrieve all trackDbs for the current users' registered hubs. Gets the trackhub with the
 // given name, or all registered track hubs if no name is given.
-list<TrackDb> Registry::retrieveHub(const string &trackhub)
+list<TrackDb> Registry::retrieveHub(const string &trackhub, string &err_msg)
 {
   list<TrackDb> result;
 
@@ -655,7 +738,7 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub)
     query_ss << "/" << trackhub;
 
   // Do the request
-  Json::Value js = getRequest(query_ss.str(), true);
+  Json::Value js = getRequest(query_ss.str(), true, err_msg);
   
   // Loop through all items in the returned array
   for (Json::ValueIterator hub_iter = js.begin(); hub_iter != js.end(); ++hub_iter)
@@ -676,7 +759,10 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub)
               strncmp(uri.c_str(), host.c_str(), host.length()) == 0)
             {
               const char *trackdb_id = uri.c_str() + host.length();
-              TrackDb trackdb = searchTrackDb(trackdb_id);
+
+              string track_err_msg;
+              TrackDb trackdb = searchTrackDb(trackdb_id, track_err_msg);
+
               result.push_back(trackdb);
             }
         }
@@ -686,14 +772,14 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub)
 }
 
 
-string Registry::deleteHub(const string &trackhub)
+string Registry::deleteHub(const string &trackhub, string &err_msg)
 {
   string result;
 
   string query(API_TRACKHUB);
   query += trackhub;
 
-  Json::Value js = deleteRequest(query, true);
+  Json::Value js = deleteRequest(query, true, err_msg);
 
   if (js["message"].isString())
     result = js["message"].asString();
@@ -702,24 +788,24 @@ string Registry::deleteHub(const string &trackhub)
 }
 
 // Retrieve a registered trackdb.
-Json::Value Registry::retrieveTrackDb(const string &trackdb)
+Json::Value Registry::retrieveTrackDb(const string &trackdb, string &err_msg)
 {
   stringstream query_ss;
   query_ss << API_TRACKDB << "/" << trackdb;
 
   // Do the request
-  Json::Value js = getRequest(query_ss.str(), true);
+  Json::Value js = getRequest(query_ss.str(), true, err_msg);
 
   return js;
 }
 
 
-Json::Value Registry::deleteTrackDb(const string &trackdb)
+Json::Value Registry::deleteTrackDb(const string &trackdb, string &err_msg)
 {
   stringstream query_ss;
   query_ss << API_TRACKDB << "/" <<  trackdb;
 
-  Json::Value js = deleteRequest(query_ss.str(), true);
+  Json::Value js = deleteRequest(query_ss.str(), true, err_msg);
 
   return js;
 }
