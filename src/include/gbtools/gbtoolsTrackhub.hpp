@@ -119,7 +119,8 @@ public:
   {} ;
 
   std::string id() const { return id_; } ;
-  std::string name() const { return hub_shortLabel_; } ;
+  std::string name() const { return hub_name_; } ;
+  std::string label() const { return hub_shortLabel_; } ;
   std::string description() const { return hub_longLabel_; } ;
   std::string url() const { return hub_url_; } ;
   std::string species() const { return species_scientific_name_; } ;
