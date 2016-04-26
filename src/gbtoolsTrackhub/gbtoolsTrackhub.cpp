@@ -569,19 +569,26 @@ bool Registry::logout()
 {
   bool result = false;
 
-  // Do the request
-  Json::Value js = getRequest(API_LOGOUT, true);
-
-  // Check return value (should be a message saying logged out ok)
-  if (js["message"].isString())
+  if (loggedIn())
     {
-      result = true;
-      user_.clear();
-      auth_token_.clear();
+      // Do the request
+      Json::Value js = getRequest(API_LOGOUT, true);
+
+      // Check return value (should be a message saying logged out ok)
+      if (js["message"].isString())
+        {
+          result = true;
+          user_.clear();
+          auth_token_.clear();
+        }
+      else
+        {
+          cout << "Error logging out" << endl;
+        }
     }
   else
     {
-      cout << "Error logging out" << endl;
+      cout << "Cannot log out: not logged in" << endl ;
     }
 
   return result;
@@ -596,25 +603,34 @@ Json::Value Registry::registerHub(const string &url,
                                   const string &type,
                                   const bool is_public)
 {
-  // Create a json-formatted message
-  Json::Value payload_js;
-  payload_js["url"] = url;
+  Json::Value js;
 
-  for (auto iter = assemblies.begin(); iter != assemblies.end(); ++iter)
-    payload_js["assemblies"][iter->first] = iter->second;
+  if (loggedIn())
+    {
+      // Create a json-formatted message
+      Json::Value payload_js;
+      payload_js["url"] = url;
 
-  if (type.length() > 0)
-    payload_js["type"] = type;
+      for (auto iter = assemblies.begin(); iter != assemblies.end(); ++iter)
+        payload_js["assemblies"][iter->first] = iter->second;
 
-  if (is_public)
-    payload_js["public"] = 1;
+      if (type.length() > 0)
+        payload_js["type"] = type;
+
+      if (is_public)
+        payload_js["public"] = 1;
+      else
+        payload_js["public"] = 0;
+
+      string payload = json_writer_.write(payload_js) ;
+
+      // Do the request
+      js = postRequest(API_TRACKHUB, payload, true);
+    }
   else
-    payload_js["public"] = 0;
-
-  string payload = json_writer_.write(payload_js) ;
-
-  // Do the request
-  Json::Value js = postRequest(API_TRACKHUB, payload, true);
+    {
+      cout << "Cannot register hub: not logged in" << endl ;
+    }
 
   return js;
 }
