@@ -50,6 +50,8 @@ using namespace gbtools::trackhub;
 
 #define TRACKHUB_REGISTRY_HOST "https://www.trackhubregistry.org"
 
+#define API_SEARCH_ENTRIES_PER_PAGE 100
+
 #define API_INFO_PING "/api/info/ping"
 #define API_INFO_VERSION "/api/info/version"
 #define API_INFO_SPECIES "/api/info/species"
@@ -174,7 +176,7 @@ Json::Value processRequestResult(const string &buffer,
       err_ss << "Bad request: " << js["error"].asString();
       break;
     case ResponseCode::INVALID_CREDENTIALS:
-      err_ss << "Invalid credentials: " << js["error"].asString();
+      err_ss << "Invalid credentials: " << js.asString();
       break;
     case ResponseCode::NOT_FOUND:
       err_ss << "Not found: " << js["error"].asString();
@@ -192,6 +194,8 @@ Json::Value processRequestResult(const string &buffer,
       err_ss << "Unrecognised response code '" <<  response_code << "'";
       break;
     } ;
+
+  err_msg = err_ss.str();
 
   return js;
 }
@@ -545,6 +549,52 @@ Json::Value Registry::trackhubs(string &err_msg)
 }
 
 
+// Get the results for a given page of a search and add them to the TrackDb list. Returns true
+// when we have processed the last page
+bool Registry::getSearchPage(stringstream &payload_ss,
+                             const int page_no,
+                             list<TrackDb> &result,
+                             string &err_msg)
+{
+  bool done = true;
+
+  stringstream url_ss;
+  url_ss << API_SEARCH << "?entries_per_page=" << API_SEARCH_ENTRIES_PER_PAGE << "&page=" << page_no;
+
+  Json::Value js = postRequest(url_ss.str(), payload_ss.str(), false, err_msg);
+
+  // Check how many results there are
+  int num_results = 0;
+
+  if (js["total_entries"].isInt())
+    num_results = js["total_entries"].asInt();
+
+  if (num_results > 0)
+    {
+      // Loop through all items in the result and extract the trackDb IDs
+      Json::Value items_js = js["items"];
+
+      for (Json::ValueIterator iter = items_js.begin(); iter != items_js.end(); ++iter)
+        {
+          Json::Value item_js = *iter ;
+
+          if (item_js["id"].isString())
+            {
+              string track_err_msg;
+              TrackDb trackdb = searchTrackDb(item_js["id"].asString(), track_err_msg) ;
+              result.push_back(trackdb) ;
+            }
+        }
+    }
+
+  // Check if there are any results remaining after this page
+  if (num_results > page_no * API_SEARCH_ENTRIES_PER_PAGE)
+    done = false;
+
+  return done;
+}
+
+
 // Search for the given search string and optional filters
 list<TrackDb> Registry::search(const string &search_str,
                                const string &species,
@@ -563,22 +613,15 @@ list<TrackDb> Registry::search(const string &search_str,
   
   stringstream payload_ss;
   payload_ss << payload_js;
-  
-  Json::Value js = postRequest(API_SEARCH, payload_ss.str(), false, err_msg);
 
-  // Loop through all items in the result and extract the trackDb IDs
-  Json::Value items_js = js["items"];
+  // There may be multiple pages so get all results and compile them into a single list
+  int page_no = 1;
+  bool done = false;
 
-  for (Json::ValueIterator iter = items_js.begin(); iter != items_js.end(); ++iter)
+  while (!done && err_msg.empty())
     {
-      Json::Value item_js = *iter ;
-
-      if (item_js["id"].isString())
-        {
-          string track_err_msg;
-          TrackDb trackdb = searchTrackDb(item_js["id"].asString(), track_err_msg) ;
-          result.push_back(trackdb) ;
-        }
+      done = getSearchPage(payload_ss, page_no, result, err_msg);
+      ++page_no;
     }
 
   return result ;

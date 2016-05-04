@@ -164,6 +164,9 @@ public:
   std::map<std::string, std::list<std::string>> assemblies(std::string &err_msg);
   Json::Value trackhubs(std::string &err_msg);
 
+  bool getSearchPage(std::stringstream &payload_ss,
+                     const int page_no, std::list<TrackDb> &result,
+                     std::string &err_msg);
   std::list<TrackDb> search(const std::string &query, const std::string &species,
                             const std::string &assembly, const std::string &hub,
                             std::string &err_msg);
