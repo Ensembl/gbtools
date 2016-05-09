@@ -244,8 +244,17 @@ lib/xp.c \
 lib/zlibFace.c \
 $(NULL) 
 
+if LINUX
 libblatSrc_la_SOURCES += lib/osunix.c
-#libblatSrc_la_SOURCES += lib/oswin9x.c
+endif
+
+if DARWIN
+libblatSrc_la_SOURCES += lib/osunix.c
+endif
+
+if CYGWIN
+libblatSrc_la_SOURCES += lib/oswin9x.c
+endif
 
 # Extra files to remove for the maintainer-clean target.
 #

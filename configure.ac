@@ -90,6 +90,41 @@ AM_CONDITIONAL([USE_LIBCURL], [test "$HAVE_LIBCURL" -eq 1])
 AC_CHECK_HEADERS([execinfo.h])
 
 
+# what are we building on?
+AC_CANONICAL_BUILD
+case $build in
+     *-*-linux*)
+     os_type="Linux";;
+     *-*-darwin*)
+     os_type="darwin" ;;
+     *-*-cygwin*)
+     os_type="cygwin" ;;
+     *)
+     os_type="Unknown";;
+esac
+
+AM_CONDITIONAL([LINUX], [ test "$os_type" = "Linux" ])
+AM_CONDITIONAL([DARWIN], [ test "$os_type" = "darwin" ])
+AM_CONDITIONAL([CYGWIN], [ test "$os_type" = "cygwin" ])
+
+# replaces -DLINUX
+if test "$os_type" = "Linux" ; then
+   AC_MSG_RESULT([Got OS type of LINUX])
+   AC_DEFINE(LINUX, [], [Operating System is LINUX.])
+
+elif test "$os_type" = "darwin" ; then
+
+   AC_MSG_RESULT([Got OS type of Darwin])
+   AC_DEFINE(DARWIN, [], [Operating System is DARWIN.])
+
+elif test "$os_type" = "cygwin" ; then
+
+   AC_MSG_RESULT([Got OS type of Cygwin])
+   AC_DEFINE(CYGWIN, [], [Operating System is CYGWIN.])
+fi
+
+
+
 AC_OUTPUT
 
 
