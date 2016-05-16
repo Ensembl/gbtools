@@ -253,6 +253,10 @@ libblatSrc_la_SOURCES += lib/osunix.c
 endif
 
 if CYGWIN
+libblatSrc_la_SOURCES += lib/osunix.c
+endif
+
+if WINDOWS
 libblatSrc_la_SOURCES += lib/oswin9x.c
 endif
 
