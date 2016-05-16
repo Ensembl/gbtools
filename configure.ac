@@ -99,6 +99,10 @@ case $build in
      os_type="darwin" ;;
      *-*-cygwin*)
      os_type="cygwin" ;;
+     *-*-mingw*)
+     os_type="windows" ;;
+     *-*-msys*)
+     os_type="windows" ;;
      *)
      os_type="Unknown";;
 esac
@@ -106,6 +110,7 @@ esac
 AM_CONDITIONAL([LINUX], [ test "$os_type" = "Linux" ])
 AM_CONDITIONAL([DARWIN], [ test "$os_type" = "darwin" ])
 AM_CONDITIONAL([CYGWIN], [ test "$os_type" = "cygwin" ])
+AM_CONDITIONAL([WINDOWS], [ test "$os_type" = "windows" ])
 
 # replaces -DLINUX
 if test "$os_type" = "Linux" ; then
@@ -121,6 +126,12 @@ elif test "$os_type" = "cygwin" ; then
 
    AC_MSG_RESULT([Got OS type of Cygwin])
    AC_DEFINE(CYGWIN, [], [Operating System is CYGWIN.])
+
+elif test "$os_type" = "windows" ; then
+
+   AC_MSG_RESULT([Got OS type of Windows])
+   AC_DEFINE(WINDOWS, [], [Operating System is WINDOWS.])
+
 fi
 
 
