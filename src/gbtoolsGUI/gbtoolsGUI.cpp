@@ -29,7 +29,6 @@
 
 #include <gbtools/gbtoolsGUI.hpp>
 #include <gtk/gtk.h>
-#include <gdk/gdkx.h>
 #include <string.h>
 
 
