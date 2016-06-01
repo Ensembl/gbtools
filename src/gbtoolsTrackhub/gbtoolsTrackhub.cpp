@@ -140,8 +140,6 @@ void getTracks(Json::ValueIterator &iter,
               js_track["type"].asString()
               );
 
-  track_list.push_back(track);
-
   if (js_track["type"].isString())
     file_types.push_back(js_track["type"].asString());
 
@@ -150,6 +148,9 @@ void getTracks(Json::ValueIterator &iter,
 
   for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
     getTracks(child, track.children_, file_types);
+
+  // Add the track to the list. Must do this last because it takes a copy.
+  track_list.push_back(track);
 }
 
 // Process the results of a request. If the response code indicates an error, set the error
