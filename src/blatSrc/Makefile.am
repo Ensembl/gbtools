@@ -260,6 +260,17 @@ if WINDOWS
 libblatSrc_la_SOURCES += lib/oswin9x.c
 endif
 
+
+
+libblatSrc_la_LDFLAGS  = \
+$(OPENSSL_LDFLAGS) \
+$(OPENSSL_LIBS) \
+$(NULL)
+
+libblatSrc_la_CFLAGS  = \
+$(OPENSSL_INCLUDES) \
+$(NULL)
+
 # Extra files to remove for the maintainer-clean target.
 #
 MAINTAINERCLEANFILES = $(top_srcdir)/src/blatSrc/Makefile.in

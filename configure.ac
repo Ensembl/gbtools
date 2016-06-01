@@ -67,6 +67,11 @@ AC_CHECK_FUNCS([dup2 floor gethostbyname memset socket sqrt strcasecmp strchr st
 # Check for dependencies required by all executables
 PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
 
+# Check for optional dependencies
+AX_CHECK_OPENSSL()
+AM_CONDITIONAL([USE_SSL], [ test -n "$OPENSSL_INCLUDES" ])
+AM_COND_IF([USE_SSL], [ echo 'openssl is available!' ])
+AM_COND_IF([USE_SSL], [AC_DEFINE([USE_SSL], [1], [Define to 1 if openssl is available])])
 
 
 AC_ARG_VAR(GLIB_GENMARSHAL, [The glib-genmarshal executable.])
