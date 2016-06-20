@@ -69,7 +69,10 @@ PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
 
 # Check for optional dependencies
 AX_CHECK_OPENSSL()
-AM_CONDITIONAL([USE_SSL], [ test -n "$OPENSSL_INCLUDES" ])
+
+AC_CHECK_HEADERS([openssl.h], [HAVE_OPENSSL_HEADER=1])
+AM_CONDITIONAL([USE_SSL], [ test -n "$HAVE_OPENSSL_HEADER" || test -n "$OPENSSL_INCLUDES" ])
+
 AM_COND_IF([USE_SSL], [ echo 'openssl is available!' ])
 AM_COND_IF([USE_SSL], [AC_DEFINE([USE_SSL], [1], [Define to 1 if openssl is available])])
 
