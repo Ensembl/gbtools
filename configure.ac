@@ -17,7 +17,10 @@ src/include/Makefile
 src/gbtoolsUtils/Makefile
 src/gbtoolsGUI/Makefile
 src/gbtoolsCurl/Makefile
+src/gbtoolsTrackhub/Makefile
 src/gbtoolsPfetch/Makefile
+src/jsoncpp/Makefile
+src/blatSrc/Makefile
 ])
 
 
@@ -64,6 +67,11 @@ AC_CHECK_FUNCS([dup2 floor gethostbyname memset socket sqrt strcasecmp strchr st
 # Check for dependencies required by all executables
 PKG_CHECK_MODULES([DEPS], [glib-2.0 gtk+-2.0 >= 2.10])
 
+# Check for optional dependencies
+AX_CHECK_OPENSSL()
+AM_CONDITIONAL([USE_SSL], [ test -n "$OPENSSL_INCLUDES" ])
+AM_COND_IF([USE_SSL], [ echo 'openssl is available!' ])
+AM_COND_IF([USE_SSL], [AC_DEFINE([USE_SSL], [1], [Define to 1 if openssl is available])])
 
 
 AC_ARG_VAR(GLIB_GENMARSHAL, [The glib-genmarshal executable.])
@@ -85,6 +93,52 @@ AM_CONDITIONAL([USE_LIBCURL], [test "$HAVE_LIBCURL" -eq 1])
 # Check for execinfo.h. This is used to provide backtraces but is not available
 # on all systems.
 AC_CHECK_HEADERS([execinfo.h])
+
+
+# what are we building on?
+AC_CANONICAL_BUILD
+case $build in
+     *-*-linux*)
+     os_type="Linux";;
+     *-*-darwin*)
+     os_type="darwin" ;;
+     *-*-cygwin*)
+     os_type="cygwin" ;;
+     *-*-mingw*)
+     os_type="windows" ;;
+     *-*-msys*)
+     os_type="windows" ;;
+     *)
+     os_type="Unknown";;
+esac
+
+AM_CONDITIONAL([LINUX], [ test "$os_type" = "Linux" ])
+AM_CONDITIONAL([DARWIN], [ test "$os_type" = "darwin" ])
+AM_CONDITIONAL([CYGWIN], [ test "$os_type" = "cygwin" ])
+AM_CONDITIONAL([WINDOWS], [ test "$os_type" = "windows" ])
+
+# replaces -DLINUX
+if test "$os_type" = "Linux" ; then
+   AC_MSG_RESULT([Got OS type of LINUX])
+   AC_DEFINE(LINUX, [], [Operating System is LINUX.])
+
+elif test "$os_type" = "darwin" ; then
+
+   AC_MSG_RESULT([Got OS type of Darwin])
+   AC_DEFINE(DARWIN, [], [Operating System is DARWIN.])
+
+elif test "$os_type" = "cygwin" ; then
+
+   AC_MSG_RESULT([Got OS type of Cygwin])
+   AC_DEFINE(CYGWIN, [], [Operating System is CYGWIN.])
+
+elif test "$os_type" = "windows" ; then
+
+   AC_MSG_RESULT([Got OS type of Windows])
+   AC_DEFINE(WINDOWS, [], [Operating System is WINDOWS.])
+
+fi
+
 
 
 AC_OUTPUT

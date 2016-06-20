@@ -1,0 +1,781 @@
+6819f30a (kent     2004-07-02 06:23:19 +0000   1) /* axtAffine - do alignment of two (shortish) sequences with
+6819f30a (kent     2004-07-02 06:23:19 +0000   2)  * affine gap scoring, and return the result as an axt. 
+6819f30a (kent     2004-07-02 06:23:19 +0000   3)  * This file is copyright 2000-2004 Jim Kent, but license is hereby
+6819f30a (kent     2004-07-02 06:23:19 +0000   4)  * granted for all use - public, private or commercial. */
+6819f30a (kent     2004-07-02 06:23:19 +0000   5) 
+6819f30a (kent     2004-07-02 06:23:19 +0000   6) #include "common.h"
+6819f30a (kent     2004-07-02 06:23:19 +0000   7) #include "pairHmm.h"
+6819f30a (kent     2004-07-02 06:23:19 +0000   8) #include "axt.h"
+6819f30a (kent     2004-07-02 06:23:19 +0000   9) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  10) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  11) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  12) boolean axtAffineSmallEnough(double querySize, double targetSize)
+6819f30a (kent     2004-07-02 06:23:19 +0000  13) /* Return TRUE if it is reasonable to align sequences of given sizes
+6819f30a (kent     2004-07-02 06:23:19 +0000  14)  * with axtAffine. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  15) {
+bdaa14f5 (Jim Kent 2014-07-17 15:16:25 -0700  16) return targetSize * querySize <= 1.0E9;
+6819f30a (kent     2004-07-02 06:23:19 +0000  17) }
+6819f30a (kent     2004-07-02 06:23:19 +0000  18) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  19) static void affineAlign(char *query, int querySize, 
+6819f30a (kent     2004-07-02 06:23:19 +0000  20) 	char *target, int targetSize, struct axtScoreScheme *ss,
+6819f30a (kent     2004-07-02 06:23:19 +0000  21) 	struct phmmMatrix **retMatrix, struct phmmAliPair **retPairList,
+6819f30a (kent     2004-07-02 06:23:19 +0000  22) 	int *retScore)
+6819f30a (kent     2004-07-02 06:23:19 +0000  23) /* Use dynamic programming to do alignment including affine gap
+6819f30a (kent     2004-07-02 06:23:19 +0000  24)  * scores. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  25) {
+6819f30a (kent     2004-07-02 06:23:19 +0000  26) struct phmmMatrix *a;
+6819f30a (kent     2004-07-02 06:23:19 +0000  27) struct phmmState *hf, *iq, *it;
+6819f30a (kent     2004-07-02 06:23:19 +0000  28) int qIx, tIx, sIx;  /* Query, target, and state indices */
+6819f30a (kent     2004-07-02 06:23:19 +0000  29) int rowOffset, newCellOffset;
+6819f30a (kent     2004-07-02 06:23:19 +0000  30) int bestScore = -0x4fffffff;
+6819f30a (kent     2004-07-02 06:23:19 +0000  31) struct phmmMommy *bestCell = NULL;
+6819f30a (kent     2004-07-02 06:23:19 +0000  32) int matchPair;
+6819f30a (kent     2004-07-02 06:23:19 +0000  33) int gapStart, gapExt;
+6819f30a (kent     2004-07-02 06:23:19 +0000  34) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  35) /* Check that it's not too big. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  36) if (!axtAffineSmallEnough(querySize, targetSize))
+6819f30a (kent     2004-07-02 06:23:19 +0000  37)     errAbort("Can't align %d x %d, too big\n", querySize, targetSize);
+6819f30a (kent     2004-07-02 06:23:19 +0000  38) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  39) gapStart = -ss->gapOpen;
+6819f30a (kent     2004-07-02 06:23:19 +0000  40) gapExt = -ss->gapExtend;
+6819f30a (kent     2004-07-02 06:23:19 +0000  41) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  42) /* Initialize 3 state matrix (match, query insert, target insert). */
+6819f30a (kent     2004-07-02 06:23:19 +0000  43) a = phmmMatrixNew(3, query, querySize, target, targetSize);
+6819f30a (kent     2004-07-02 06:23:19 +0000  44) hf = phmmNameState(a, 0, "match", 'M');
+6819f30a (kent     2004-07-02 06:23:19 +0000  45) iq = phmmNameState(a, 1, "qSlip", 'Q');
+6819f30a (kent     2004-07-02 06:23:19 +0000  46) it = phmmNameState(a, 2, "tSlip", 'T');
+6819f30a (kent     2004-07-02 06:23:19 +0000  47) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  48) for (tIx = 1; tIx < a->tDim; tIx += 1)
+6819f30a (kent     2004-07-02 06:23:19 +0000  49)     {
+6819f30a (kent     2004-07-02 06:23:19 +0000  50)     UBYTE mommy = 0;
+6819f30a (kent     2004-07-02 06:23:19 +0000  51)     int score, tempScore;
+6819f30a (kent     2004-07-02 06:23:19 +0000  52) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  53) /* Macros to make me less mixed up when accessing scores from row arrays.*/
+6819f30a (kent     2004-07-02 06:23:19 +0000  54) #define matchScore lastScores[qIx-1]
+6819f30a (kent     2004-07-02 06:23:19 +0000  55) #define qSlipScore lastScores[qIx]
+6819f30a (kent     2004-07-02 06:23:19 +0000  56) #define tSlipScore scores[qIx-1]
+6819f30a (kent     2004-07-02 06:23:19 +0000  57) #define newScore scores[qIx]
+6819f30a (kent     2004-07-02 06:23:19 +0000  58) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  59) /* Start up state block (with all ways to enter state) */
+6819f30a (kent     2004-07-02 06:23:19 +0000  60) #define startState(state) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  61)    score = 0;
+6819f30a (kent     2004-07-02 06:23:19 +0000  62) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  63) /* Define a transition from state while advancing over both
+6819f30a (kent     2004-07-02 06:23:19 +0000  64)  * target and query. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  65) #define matchState(state, addScore) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  66)    { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  67)    if ((tempScore = state->matchScore + addScore) > score) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  68)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  69)         mommy = phmmPackMommy(state->stateIx, -1, -1); \
+6819f30a (kent     2004-07-02 06:23:19 +0000  70)         score = tempScore; \
+6819f30a (kent     2004-07-02 06:23:19 +0000  71)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000  72)    } 
+6819f30a (kent     2004-07-02 06:23:19 +0000  73) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  74) /* Define a transition from state while slipping query
+6819f30a (kent     2004-07-02 06:23:19 +0000  75)  * and advancing target. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  76) #define qSlipState(state, addScore) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  77)    { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  78)    if ((tempScore = state->qSlipScore + addScore) > score) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  79)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  80)         mommy = phmmPackMommy(state->stateIx, 0, -1); \
+6819f30a (kent     2004-07-02 06:23:19 +0000  81)         score = tempScore; \
+6819f30a (kent     2004-07-02 06:23:19 +0000  82)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000  83)    }
+6819f30a (kent     2004-07-02 06:23:19 +0000  84) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  85) /* Define a transition from state while slipping target
+6819f30a (kent     2004-07-02 06:23:19 +0000  86)  * and advancing query. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  87) #define tSlipState(state, addScore) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  88)    { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  89)    if ((tempScore = state->tSlipScore + addScore) > score) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  90)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  91)         mommy = phmmPackMommy(state->stateIx, -1, 0); \
+6819f30a (kent     2004-07-02 06:23:19 +0000  92)         score = tempScore; \
+6819f30a (kent     2004-07-02 06:23:19 +0000  93)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000  94)    }
+6819f30a (kent     2004-07-02 06:23:19 +0000  95) 
+6819f30a (kent     2004-07-02 06:23:19 +0000  96) /* End a block of transitions into state. */
+6819f30a (kent     2004-07-02 06:23:19 +0000  97) #define endState(state) \
+6819f30a (kent     2004-07-02 06:23:19 +0000  98)     { \
+6819f30a (kent     2004-07-02 06:23:19 +0000  99)     struct phmmMommy *newCell = state->cells + newCellOffset; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 100)     if (score <= 0) \
+6819f30a (kent     2004-07-02 06:23:19 +0000 101)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000 102)         mommy = phmmNullMommy; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 103)         score = 0; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 104)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000 105)     newCell->mommy = mommy; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 106)     state->newScore = score; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 107)     if (score > bestScore) \
+6819f30a (kent     2004-07-02 06:23:19 +0000 108)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000 109)         bestScore = score; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 110)         bestCell = newCell; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 111)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000 112)     } 
+6819f30a (kent     2004-07-02 06:23:19 +0000 113) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 114) /* End a state that you know won't produce an optimal
+6819f30a (kent     2004-07-02 06:23:19 +0000 115)  * final score. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 116) #define shortEndState(state) \
+6819f30a (kent     2004-07-02 06:23:19 +0000 117)     { \
+6819f30a (kent     2004-07-02 06:23:19 +0000 118)     struct phmmMommy *newCell = state->cells + newCellOffset; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 119)     if (score <= 0) \
+6819f30a (kent     2004-07-02 06:23:19 +0000 120)         { \
+6819f30a (kent     2004-07-02 06:23:19 +0000 121)         mommy = phmmNullMommy; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 122)         score = 0; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 123)         } \
+6819f30a (kent     2004-07-02 06:23:19 +0000 124)     newCell->mommy = mommy; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 125)     state->newScore = score; \
+6819f30a (kent     2004-07-02 06:23:19 +0000 126)     }
+6819f30a (kent     2004-07-02 06:23:19 +0000 127) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 128) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 129)     rowOffset = tIx*a->qDim;
+6819f30a (kent     2004-07-02 06:23:19 +0000 130)     for (qIx = 1; qIx < a->qDim; qIx += 1)
+6819f30a (kent     2004-07-02 06:23:19 +0000 131)         {
+6819f30a (kent     2004-07-02 06:23:19 +0000 132)         newCellOffset = rowOffset + qIx;
+6819f30a (kent     2004-07-02 06:23:19 +0000 133)         
+6819f30a (kent     2004-07-02 06:23:19 +0000 134)         /* Figure the cost or bonus for pairing target and query residue here. */
+051436e7 (markd    2005-04-10 14:41:26 +0000 135)         matchPair = ss->matrix[(int)a->query[qIx-1]][(int)a->target[tIx-1]];
+6819f30a (kent     2004-07-02 06:23:19 +0000 136) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 137)         /* Update hiFi space. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 138)             {
+6819f30a (kent     2004-07-02 06:23:19 +0000 139)             startState(hf);
+6819f30a (kent     2004-07-02 06:23:19 +0000 140)             matchState(hf, matchPair);
+6819f30a (kent     2004-07-02 06:23:19 +0000 141)             matchState(iq, matchPair);
+6819f30a (kent     2004-07-02 06:23:19 +0000 142)             matchState(it, matchPair);
+6819f30a (kent     2004-07-02 06:23:19 +0000 143)             endState(hf);
+6819f30a (kent     2004-07-02 06:23:19 +0000 144)             }
+6819f30a (kent     2004-07-02 06:23:19 +0000 145) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 146)         /* Update query slip space. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 147)             {
+6819f30a (kent     2004-07-02 06:23:19 +0000 148)             startState(iq);
+6819f30a (kent     2004-07-02 06:23:19 +0000 149)             qSlipState(iq, gapExt);
+6819f30a (kent     2004-07-02 06:23:19 +0000 150)             qSlipState(hf, gapStart);            
+6819f30a (kent     2004-07-02 06:23:19 +0000 151) 	    qSlipState(it, gapStart);	/* Allow double gaps, T first always. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 152)             shortEndState(iq);
+6819f30a (kent     2004-07-02 06:23:19 +0000 153)             }
+6819f30a (kent     2004-07-02 06:23:19 +0000 154)         
+6819f30a (kent     2004-07-02 06:23:19 +0000 155)         /* Update target slip space. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 156)             {
+6819f30a (kent     2004-07-02 06:23:19 +0000 157)             startState(it);
+6819f30a (kent     2004-07-02 06:23:19 +0000 158)             tSlipState(it, gapExt);
+6819f30a (kent     2004-07-02 06:23:19 +0000 159)             tSlipState(hf, gapStart);            
+6819f30a (kent     2004-07-02 06:23:19 +0000 160)             shortEndState(it);
+6819f30a (kent     2004-07-02 06:23:19 +0000 161)             }
+6819f30a (kent     2004-07-02 06:23:19 +0000 162) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 163)         }
+6819f30a (kent     2004-07-02 06:23:19 +0000 164)     /* Swap score columns so current becomes last, and last gets
+6819f30a (kent     2004-07-02 06:23:19 +0000 165)      * reused. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 166)     for (sIx = 0; sIx < a->stateCount; ++sIx)
+6819f30a (kent     2004-07-02 06:23:19 +0000 167)         {
+6819f30a (kent     2004-07-02 06:23:19 +0000 168)         struct phmmState *as = &a->states[sIx];
+6819f30a (kent     2004-07-02 06:23:19 +0000 169)         int *swapTemp = as->lastScores;
+6819f30a (kent     2004-07-02 06:23:19 +0000 170)         as->lastScores = as->scores;
+6819f30a (kent     2004-07-02 06:23:19 +0000 171)         as->scores = swapTemp;
+6819f30a (kent     2004-07-02 06:23:19 +0000 172)         }
+6819f30a (kent     2004-07-02 06:23:19 +0000 173)     }
+6819f30a (kent     2004-07-02 06:23:19 +0000 174) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 175) /* Trace back from best scoring cell. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 176) *retPairList = phmmTraceBack(a, bestCell);
+6819f30a (kent     2004-07-02 06:23:19 +0000 177) *retMatrix = a;
+6819f30a (kent     2004-07-02 06:23:19 +0000 178) *retScore = bestScore;
+6819f30a (kent     2004-07-02 06:23:19 +0000 179) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 180) #undef matchScore
+6819f30a (kent     2004-07-02 06:23:19 +0000 181) #undef qSlipScore
+6819f30a (kent     2004-07-02 06:23:19 +0000 182) #undef tSlipScore
+6819f30a (kent     2004-07-02 06:23:19 +0000 183) #undef newScore
+6819f30a (kent     2004-07-02 06:23:19 +0000 184) #undef startState
+6819f30a (kent     2004-07-02 06:23:19 +0000 185) #undef matchState
+6819f30a (kent     2004-07-02 06:23:19 +0000 186) #undef qSlipState
+6819f30a (kent     2004-07-02 06:23:19 +0000 187) #undef tSlipState
+6819f30a (kent     2004-07-02 06:23:19 +0000 188) #undef shortEndState
+6819f30a (kent     2004-07-02 06:23:19 +0000 189) #undef endState
+6819f30a (kent     2004-07-02 06:23:19 +0000 190) }
+6819f30a (kent     2004-07-02 06:23:19 +0000 191) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 192) struct axt *axtAffine(bioSeq *query, bioSeq *target, struct axtScoreScheme *ss)
+6819f30a (kent     2004-07-02 06:23:19 +0000 193) /* Return alignment if any of query and target using scoring scheme. */
+6819f30a (kent     2004-07-02 06:23:19 +0000 194) {
+6819f30a (kent     2004-07-02 06:23:19 +0000 195) struct axt *axt;
+6819f30a (kent     2004-07-02 06:23:19 +0000 196) int score;
+6819f30a (kent     2004-07-02 06:23:19 +0000 197) struct phmmMatrix *matrix;
+6819f30a (kent     2004-07-02 06:23:19 +0000 198) struct phmmAliPair *pairList;
+6819f30a (kent     2004-07-02 06:23:19 +0000 199) 
+6819f30a (kent     2004-07-02 06:23:19 +0000 200) affineAlign(query->dna, query->size, target->dna, target->size, ss,
+6819f30a (kent     2004-07-02 06:23:19 +0000 201) 	&matrix, &pairList, &score);
+6819f30a (kent     2004-07-02 06:23:19 +0000 202) axt = phhmTraceToAxt(matrix, pairList, score, query->name, target->name);
+6819f30a (kent     2004-07-02 06:23:19 +0000 203) phmmMatrixFree(&matrix);
+6819f30a (kent     2004-07-02 06:23:19 +0000 204) slFreeList(&pairList);
+6819f30a (kent     2004-07-02 06:23:19 +0000 205) return axt;
+6819f30a (kent     2004-07-02 06:23:19 +0000 206) }
+6819f30a (kent     2004-07-02 06:23:19 +0000 207) 
+810304ec (galt     2004-12-08 20:53:07 +0000 208) 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 209) /* ----- axtAffine2Level begins ----- 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 210) 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 211)  Written by Galt Barber, December 2004
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 212)  I wrote this on my own time and am donating this
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 213)  to the public domain.  The original concept 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 214)  was Don Speck's, as described by Kevin Karplus.
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 215) 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 216)  @article{Grice97,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 217)      author = "J. A. Grice and R. Hughey and D. Speck",
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 218)      title = "Reduced space sequence alignment",
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 219)      journal = cabios,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 220)      volume=13,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 221)      number=1,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 222)      year=1997,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 223)      month=feb,
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 224)      pages="45-53"
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 225)      }
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 226) 								 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 227) 
+b6f18c16 (galt     2005-01-06 20:12:26 +0000 228) */
+810304ec (galt     2004-12-08 20:53:07 +0000 229) 
+810304ec (galt     2004-12-08 20:53:07 +0000 230) #define WORST 0xC0000000 /* WORST Score approx neg. inf. 0x80000000 overflowed, reduced by half */
+810304ec (galt     2004-12-08 20:53:07 +0000 231) 
+810304ec (galt     2004-12-08 20:53:07 +0000 232) 
+810304ec (galt     2004-12-08 20:53:07 +0000 233) /* m d i notation: match, delete, insert in query */
+810304ec (galt     2004-12-08 20:53:07 +0000 234) 
+810304ec (galt     2004-12-08 20:53:07 +0000 235) struct cell2L 
+810304ec (galt     2004-12-08 20:53:07 +0000 236) {
+810304ec (galt     2004-12-08 20:53:07 +0000 237) int  bestm;   /* best score array */
+810304ec (galt     2004-12-08 20:53:07 +0000 238) int  bestd;                         
+810304ec (galt     2004-12-08 20:53:07 +0000 239) int  besti;                          
+810304ec (galt     2004-12-08 20:53:07 +0000 240) char backm;   /* back trace array */
+810304ec (galt     2004-12-08 20:53:07 +0000 241) char backd;                         
+810304ec (galt     2004-12-08 20:53:07 +0000 242) char backi;                          
+810304ec (galt     2004-12-08 20:53:07 +0000 243) };
+810304ec (galt     2004-12-08 20:53:07 +0000 244) 
+810304ec (galt     2004-12-08 20:53:07 +0000 245) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 246) void dump2L(struct cell2L* c)
+810304ec (galt     2004-12-08 20:53:07 +0000 247) /* print matrix cell for debugging 
+810304ec (galt     2004-12-08 20:53:07 +0000 248)    I redirect output to a file 
+810304ec (galt     2004-12-08 20:53:07 +0000 249)    and look at it with a web browser
+810304ec (galt     2004-12-08 20:53:07 +0000 250)    to see the long lines
+810304ec (galt     2004-12-08 20:53:07 +0000 251) */
+810304ec (galt     2004-12-08 20:53:07 +0000 252) {
+810304ec (galt     2004-12-08 20:53:07 +0000 253)     printf("%04d%c %04d%c %04d%c   ",
+810304ec (galt     2004-12-08 20:53:07 +0000 254)      c->bestd, c->backd,
+810304ec (galt     2004-12-08 20:53:07 +0000 255)      c->bestm, c->backm,
+810304ec (galt     2004-12-08 20:53:07 +0000 256)      c->besti, c->backi
+810304ec (galt     2004-12-08 20:53:07 +0000 257)      );
+810304ec (galt     2004-12-08 20:53:07 +0000 258) }     
+810304ec (galt     2004-12-08 20:53:07 +0000 259) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 260) 
+810304ec (galt     2004-12-08 20:53:07 +0000 261) void kForwardAffine(
+810304ec (galt     2004-12-08 20:53:07 +0000 262) struct cell2L *cells,  /* dyn prg arr cells */
+810304ec (galt     2004-12-08 20:53:07 +0000 263) int row,      /* starting row base */
+810304ec (galt     2004-12-08 20:53:07 +0000 264) int rowmax,   /* ending row */
+810304ec (galt     2004-12-08 20:53:07 +0000 265) int rdelta,   /* convert between real targ seq row and logical row */                             
+810304ec (galt     2004-12-08 20:53:07 +0000 266) int cmost,    /* track right edge, shrink as traces back */
+810304ec (galt     2004-12-08 20:53:07 +0000 267) int lv,       /* width of array including sentinel col 0 */ 
+810304ec (galt     2004-12-08 20:53:07 +0000 268) char *q,      /* query and target seqs */
+810304ec (galt     2004-12-08 20:53:07 +0000 269) char *t,
+810304ec (galt     2004-12-08 20:53:07 +0000 270) struct axtScoreScheme *ss,  /* score scheme passed in */
+810304ec (galt     2004-12-08 20:53:07 +0000 271) int *bestbestOut,  /* return best overall found, and it's row and col */
+810304ec (galt     2004-12-08 20:53:07 +0000 272) int *bestrOut,
+810304ec (galt     2004-12-08 20:53:07 +0000 273) int *bestcOut,
+810304ec (galt     2004-12-08 20:53:07 +0000 274) char *bestdirOut
+810304ec (galt     2004-12-08 20:53:07 +0000 275) )
+810304ec (galt     2004-12-08 20:53:07 +0000 276) /*
+810304ec (galt     2004-12-08 20:53:07 +0000 277) Calculates filling dynprg mtx forward.
+810304ec (galt     2004-12-08 20:53:07 +0000 278)  Called 3 times from affine2Level.
+810304ec (galt     2004-12-08 20:53:07 +0000 279) 
+810304ec (galt     2004-12-08 20:53:07 +0000 280) row is offset into the actual best and back arrays,
+810304ec (galt     2004-12-08 20:53:07 +0000 281)  so rdelta serves as a conversion between
+810304ec (galt     2004-12-08 20:53:07 +0000 282)  the real target seq row and the logical row
+810304ec (galt     2004-12-08 20:53:07 +0000 283)  used in best and back arrays.
+810304ec (galt     2004-12-08 20:53:07 +0000 284) 
+810304ec (galt     2004-12-08 20:53:07 +0000 285) cmost is a column limiter that lets us avoid
+810304ec (galt     2004-12-08 20:53:07 +0000 286)  unused areas of the array when doing the
+810304ec (galt     2004-12-08 20:53:07 +0000 287)  backtrace 2nd pass. This can be an average
+810304ec (galt     2004-12-08 20:53:07 +0000 288)  of half of the total array saved.
+810304ec (galt     2004-12-08 20:53:07 +0000 289) 
+810304ec (galt     2004-12-08 20:53:07 +0000 290) */
+810304ec (galt     2004-12-08 20:53:07 +0000 291) {
+810304ec (galt     2004-12-08 20:53:07 +0000 292) int r=0, rr=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 293) int gapOpen  =ss->gapOpen;    
+810304ec (galt     2004-12-08 20:53:07 +0000 294) int gapExtend=ss->gapExtend;  
+810304ec (galt     2004-12-08 20:53:07 +0000 295) int doubleGap=ss->gapExtend;  // this can be gapOpen or gapExtend, or custom ?
+810304ec (galt     2004-12-08 20:53:07 +0000 296) struct cell2L *cellp,*cellc;  /* current and previous row base */
+810304ec (galt     2004-12-08 20:53:07 +0000 297) struct cell2L *u,*d,*l,*s;    /* up,diag,left,self pointers to hopefully speed things up */
+810304ec (galt     2004-12-08 20:53:07 +0000 298) int c=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 299) int bestbest = *bestbestOut; /* make local copy of best best */
+810304ec (galt     2004-12-08 20:53:07 +0000 300) cellc = cells+(row-1)*lv;     /* start it off one row back coming into loop */
+810304ec (galt     2004-12-08 20:53:07 +0000 301) 
+810304ec (galt     2004-12-08 20:53:07 +0000 302) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 303) for(c=0;c<=cmost;c++) /* show prev row */
+810304ec (galt     2004-12-08 20:53:07 +0000 304)     { dump2L(cellc+c); }
+810304ec (galt     2004-12-08 20:53:07 +0000 305) printf("\n");
+810304ec (galt     2004-12-08 20:53:07 +0000 306) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 307) 
+810304ec (galt     2004-12-08 20:53:07 +0000 308) for(r=row; r<=rowmax; r++)
+810304ec (galt     2004-12-08 20:53:07 +0000 309)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 310)     cellp = cellc;
+810304ec (galt     2004-12-08 20:53:07 +0000 311)     cellc += lv;    /* initialize pointers to curr and prev rows */
+810304ec (galt     2004-12-08 20:53:07 +0000 312)     
+810304ec (galt     2004-12-08 20:53:07 +0000 313)     rr = r+rdelta;
+810304ec (galt     2004-12-08 20:53:07 +0000 314) 
+810304ec (galt     2004-12-08 20:53:07 +0000 315)     d = cellp;   /* diag is prev row, prev col */
+810304ec (galt     2004-12-08 20:53:07 +0000 316)     l = cellc;   /* left is curr row, prev col */
+810304ec (galt     2004-12-08 20:53:07 +0000 317)     u = d+1;     /*   up is prev row, curr col */
+810304ec (galt     2004-12-08 20:53:07 +0000 318)     s = l+1;     /* self is curr row, curr col */
+810304ec (galt     2004-12-08 20:53:07 +0000 319)     
+810304ec (galt     2004-12-08 20:53:07 +0000 320)     /* handle col 0 sentinel as a delete */
+810304ec (galt     2004-12-08 20:53:07 +0000 321)     l->bestm=WORST; 
+810304ec (galt     2004-12-08 20:53:07 +0000 322)     l->bestd=d->bestd-gapExtend;
+810304ec (galt     2004-12-08 20:53:07 +0000 323)     l->besti=WORST;                 
+810304ec (galt     2004-12-08 20:53:07 +0000 324)     l->backm='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 325)     l->backd='d';
+810304ec (galt     2004-12-08 20:53:07 +0000 326)     l->backi='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 327)     if (rr==1)    /* special case row 1 col 0 */
+810304ec (galt     2004-12-08 20:53:07 +0000 328) 	{
+810304ec (galt     2004-12-08 20:53:07 +0000 329) 	l->bestd=-gapOpen;
+810304ec (galt     2004-12-08 20:53:07 +0000 330) 	l->backd='m';
+810304ec (galt     2004-12-08 20:53:07 +0000 331) 	}
+810304ec (galt     2004-12-08 20:53:07 +0000 332) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 333)     dump2L(cellc); 
+810304ec (galt     2004-12-08 20:53:07 +0000 334) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 335)     
+810304ec (galt     2004-12-08 20:53:07 +0000 336)     for(c=1; c<=cmost; c++)
+810304ec (galt     2004-12-08 20:53:07 +0000 337) 	{
+810304ec (galt     2004-12-08 20:53:07 +0000 338) 
+810304ec (galt     2004-12-08 20:53:07 +0000 339) 	int best=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 340) 	int try  =WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 341) 	char dir=' ';
+810304ec (galt     2004-12-08 20:53:07 +0000 342) 	/* note: is matrix symmetrical? if not we could have dim 1 and 2 backwards */
+810304ec (galt     2004-12-08 20:53:07 +0000 343) 	int subst = ss->matrix[(int)q[c-1]][(int)t[rr-1]];  /* score for pairing target and query. */
+810304ec (galt     2004-12-08 20:53:07 +0000 344) 
+810304ec (galt     2004-12-08 20:53:07 +0000 345) 	/* find best M match query and target */
+810304ec (galt     2004-12-08 20:53:07 +0000 346) 	best=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 347) 	try=d->bestd;    
+810304ec (galt     2004-12-08 20:53:07 +0000 348) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 349) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 350) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 351) 	    dir='d';
+810304ec (galt     2004-12-08 20:53:07 +0000 352) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 353) 	try=d->bestm;   
+810304ec (galt     2004-12-08 20:53:07 +0000 354) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 355) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 356) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 357) 	    dir='m';
+810304ec (galt     2004-12-08 20:53:07 +0000 358) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 359) 	try=d->besti;   
+810304ec (galt     2004-12-08 20:53:07 +0000 360) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 361) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 362) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 363) 	    dir='i';
+810304ec (galt     2004-12-08 20:53:07 +0000 364) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 365) 	try=0;                   /* local ali can start anywhere */
+810304ec (galt     2004-12-08 20:53:07 +0000 366) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 367) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 368) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 369) 	    dir='s';         
+810304ec (galt     2004-12-08 20:53:07 +0000 370) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 371) 	best += subst;
+810304ec (galt     2004-12-08 20:53:07 +0000 372) 	s->bestm = best;
+810304ec (galt     2004-12-08 20:53:07 +0000 373) 	s->backm = dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 374) 	if (best > bestbest)
+810304ec (galt     2004-12-08 20:53:07 +0000 375) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 376) 	    bestbest=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 377) 	    *bestbestOut=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 378) 	    *bestrOut=rr;
+810304ec (galt     2004-12-08 20:53:07 +0000 379) 	    *bestcOut=c;
+810304ec (galt     2004-12-08 20:53:07 +0000 380) 	    *bestdirOut=dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 381) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 382) 
+810304ec (galt     2004-12-08 20:53:07 +0000 383) 	/* find best D delete in query */
+810304ec (galt     2004-12-08 20:53:07 +0000 384) 	best=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 385) 	try=u->bestd - gapExtend;
+810304ec (galt     2004-12-08 20:53:07 +0000 386) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 387) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 388) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 389) 	    dir='d';
+810304ec (galt     2004-12-08 20:53:07 +0000 390) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 391) 	try=u->bestm - gapOpen;    
+810304ec (galt     2004-12-08 20:53:07 +0000 392) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 393) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 394) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 395) 	    dir='m';
+810304ec (galt     2004-12-08 20:53:07 +0000 396) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 397) 	try=u->besti - doubleGap;    
+810304ec (galt     2004-12-08 20:53:07 +0000 398) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 399) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 400) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 401) 	    dir='i';
+810304ec (galt     2004-12-08 20:53:07 +0000 402) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 403) 	s->bestd = best;
+810304ec (galt     2004-12-08 20:53:07 +0000 404) 	s->backd = dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 405) 	if (best > bestbest)
+810304ec (galt     2004-12-08 20:53:07 +0000 406) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 407) 	    bestbest=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 408) 	    *bestbestOut=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 409) 	    *bestrOut=rr;
+810304ec (galt     2004-12-08 20:53:07 +0000 410) 	    *bestcOut=c;
+810304ec (galt     2004-12-08 20:53:07 +0000 411) 	    *bestdirOut=dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 412) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 413) 
+810304ec (galt     2004-12-08 20:53:07 +0000 414) 	/* find best I insert in query */
+810304ec (galt     2004-12-08 20:53:07 +0000 415) 	best=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 416) 	try=l->bestd - doubleGap;
+810304ec (galt     2004-12-08 20:53:07 +0000 417) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 418) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 419) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 420) 	    dir='d';
+810304ec (galt     2004-12-08 20:53:07 +0000 421) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 422) 	try=l->bestm - gapOpen;    
+810304ec (galt     2004-12-08 20:53:07 +0000 423) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 424) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 425) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 426) 	    dir='m';
+810304ec (galt     2004-12-08 20:53:07 +0000 427) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 428) 	try=l->besti - gapExtend;    
+810304ec (galt     2004-12-08 20:53:07 +0000 429) 	if (try > best)
+810304ec (galt     2004-12-08 20:53:07 +0000 430) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 431) 	    best=try;
+810304ec (galt     2004-12-08 20:53:07 +0000 432) 	    dir='i';
+810304ec (galt     2004-12-08 20:53:07 +0000 433) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 434) 	s->besti = best;
+810304ec (galt     2004-12-08 20:53:07 +0000 435) 	s->backi = dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 436) 	if (best > bestbest)
+810304ec (galt     2004-12-08 20:53:07 +0000 437) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 438) 	    bestbest=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 439) 	    *bestbestOut=best;
+810304ec (galt     2004-12-08 20:53:07 +0000 440) 	    *bestrOut=rr;
+810304ec (galt     2004-12-08 20:53:07 +0000 441) 	    *bestcOut=c;
+810304ec (galt     2004-12-08 20:53:07 +0000 442) 	    *bestdirOut=dir;
+810304ec (galt     2004-12-08 20:53:07 +0000 443) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 444) 
+810304ec (galt     2004-12-08 20:53:07 +0000 445) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 446)     dump2L(cellc+c); 
+810304ec (galt     2004-12-08 20:53:07 +0000 447) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 448) 
+810304ec (galt     2004-12-08 20:53:07 +0000 449) 	d++;l++;u++;s++;
+810304ec (galt     2004-12-08 20:53:07 +0000 450) 
+810304ec (galt     2004-12-08 20:53:07 +0000 451) 	}
+810304ec (galt     2004-12-08 20:53:07 +0000 452) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 453) printf("\n");
+810304ec (galt     2004-12-08 20:53:07 +0000 454) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 455)   
+810304ec (galt     2004-12-08 20:53:07 +0000 456)     }
+810304ec (galt     2004-12-08 20:53:07 +0000 457) } 
+810304ec (galt     2004-12-08 20:53:07 +0000 458) 
+810304ec (galt     2004-12-08 20:53:07 +0000 459) 
+810304ec (galt     2004-12-08 20:53:07 +0000 460) 
+810304ec (galt     2004-12-08 20:53:07 +0000 461) struct axt *axtAffine2Level(bioSeq *query, bioSeq *target, struct axtScoreScheme *ss)
+810304ec (galt     2004-12-08 20:53:07 +0000 462) /* 
+810304ec (galt     2004-12-08 20:53:07 +0000 463) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 464)    (Moving boundary version, allows target T size twice as large in same ram)
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 465) 
+810304ec (galt     2004-12-08 20:53:07 +0000 466)    Return alignment if any of query and target using scoring scheme. 
+810304ec (galt     2004-12-08 20:53:07 +0000 467)    
+810304ec (galt     2004-12-08 20:53:07 +0000 468)    2Level uses an economical amount of ram and should work for large target sequences.
+810304ec (galt     2004-12-08 20:53:07 +0000 469)    
+810304ec (galt     2004-12-08 20:53:07 +0000 470)    If Q is query size and T is target size and M is memory size, then
+810304ec (galt     2004-12-08 20:53:07 +0000 471)    Total memory used M = 30*Q*sqrt(T).  When the target is much larger than the query
+810304ec (galt     2004-12-08 20:53:07 +0000 472)    this method saves ram, and average runtime is only 50% greater, or 1.5 QT.  
+810304ec (galt     2004-12-08 20:53:07 +0000 473)    If Q=5000 and T=245,522,847 for hg17 chr1, then M = 2.2 GB ram.  
+810304ec (galt     2004-12-08 20:53:07 +0000 474)    axtAffine would need M=3QT = 3.4 TB.
+810304ec (galt     2004-12-08 20:53:07 +0000 475)    Of course massive alignments will be painfully slow anyway.
+810304ec (galt     2004-12-08 20:53:07 +0000 476) 
+810304ec (galt     2004-12-08 20:53:07 +0000 477)    Works for protein as well as DNA given the correct scoreScheme.
+810304ec (galt     2004-12-08 20:53:07 +0000 478)   
+810304ec (galt     2004-12-08 20:53:07 +0000 479)    NOTES:
+810304ec (galt     2004-12-08 20:53:07 +0000 480)    Double-gap cost is equal to gap-extend cost, but gap-open would also work.
+810304ec (galt     2004-12-08 20:53:07 +0000 481)    On very large target, score integer may overflow.
+810304ec (galt     2004-12-08 20:53:07 +0000 482)    Input sequences not checked for invalid chars.
+810304ec (galt     2004-12-08 20:53:07 +0000 483)    Input not checked but query should be shorter than target.
+810304ec (galt     2004-12-08 20:53:07 +0000 484)    
+810304ec (galt     2004-12-08 20:53:07 +0000 485) */
+810304ec (galt     2004-12-08 20:53:07 +0000 486) {
+810304ec (galt     2004-12-08 20:53:07 +0000 487) struct axt *axt=needMem(sizeof(struct axt));
+810304ec (galt     2004-12-08 20:53:07 +0000 488) 
+810304ec (galt     2004-12-08 20:53:07 +0000 489) char *q = query->dna;
+810304ec (galt     2004-12-08 20:53:07 +0000 490) char *t = target->dna;
+810304ec (galt     2004-12-08 20:53:07 +0000 491) 
+810304ec (galt     2004-12-08 20:53:07 +0000 492) int Q= query->size;
+810304ec (galt     2004-12-08 20:53:07 +0000 493) int T=target->size;
+810304ec (galt     2004-12-08 20:53:07 +0000 494) int lv=Q+1;                    /* Q+1 is used so often let's call it lv for q-width */
+810304ec (galt     2004-12-08 20:53:07 +0000 495) int lw=T+1;                    /* T+1 is used so often let's call it lw for t-height */
+810304ec (galt     2004-12-08 20:53:07 +0000 496) 
+810304ec (galt     2004-12-08 20:53:07 +0000 497) 
+810304ec (galt     2004-12-08 20:53:07 +0000 498) int r = 0;                                 /* row matrix index */
+810304ec (galt     2004-12-08 20:53:07 +0000 499) int c = 0;                                 /* col matrix index */
+810304ec (galt     2004-12-08 20:53:07 +0000 500) char dir=' ';                              /* dir for bt */
+810304ec (galt     2004-12-08 20:53:07 +0000 501) int bestbest = WORST;                      /* best score in entire mtx */
+810304ec (galt     2004-12-08 20:53:07 +0000 502) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 503) int k=0;                                   /* save every kth row (k decreasing) */
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 504) int ksize = 0;                             /* T+1 saved rows as ksize, ksize-1,...,1*/
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 505) int arrsize = 0;                           /* dynprg array size, +1 for 0 sentinel col. */
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 506) struct cell2L *cells = NULL;               /* best score dyn prog array */
+810304ec (galt     2004-12-08 20:53:07 +0000 507) int ki = 0;                                /* base offset into array */
+810304ec (galt     2004-12-08 20:53:07 +0000 508) int cmost = Q;                             /* track right edge shrinkage during backtrace */
+810304ec (galt     2004-12-08 20:53:07 +0000 509) int kmax = 0;                              /* rows range from ki to kmax */
+810304ec (galt     2004-12-08 20:53:07 +0000 510) int rr = 0;                                /* maps ki base to actual target seq */
+810304ec (galt     2004-12-08 20:53:07 +0000 511) int nrows = 0;                             /* num rows to do, usually k or less */
+810304ec (galt     2004-12-08 20:53:07 +0000 512) int bestr = 0;                             /* remember best r,c,dir for local ali */
+810304ec (galt     2004-12-08 20:53:07 +0000 513) int bestc = 0;           
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 514) char bestdir = 0;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 515) int temp = 0;
+810304ec (galt     2004-12-08 20:53:07 +0000 516) 
+810304ec (galt     2004-12-08 20:53:07 +0000 517) 
+810304ec (galt     2004-12-08 20:53:07 +0000 518) char *btq=NULL;      /* temp pointers to track ends of string while accumulating */
+810304ec (galt     2004-12-08 20:53:07 +0000 519) char *btt=NULL;
+810304ec (galt     2004-12-08 20:53:07 +0000 520) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 521) ksize = (int) (-1 + sqrt(8*lw+1))/2;    
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 522) if (((ksize*(ksize+1))/2) < lw) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 523)     {ksize++;}
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 524) arrsize = (ksize+1) * lv;                 /* dynprg array size, +1 for lastrow that moves back up. */
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 525) cells = needLargeMem(arrsize * sizeof(struct cell2L));   /* best score dyn prog array */
+810304ec (galt     2004-12-08 20:53:07 +0000 526) 
+810304ec (galt     2004-12-08 20:53:07 +0000 527) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 528) printf("\n k=%d \n ksize=%d \n arrsize=%d \n Q,lv=%d,%d T=%d \n \n",k,ksize,arrsize,Q,lv,T);
+810304ec (galt     2004-12-08 20:53:07 +0000 529) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 530) 
+810304ec (galt     2004-12-08 20:53:07 +0000 531) axt->next = NULL;
+810304ec (galt     2004-12-08 20:53:07 +0000 532) axt->qName = cloneString(query->name);
+810304ec (galt     2004-12-08 20:53:07 +0000 533) axt->tName = cloneString(target->name);
+810304ec (galt     2004-12-08 20:53:07 +0000 534) axt->qStrand ='+';
+810304ec (galt     2004-12-08 20:53:07 +0000 535) axt->tStrand ='+';
+810304ec (galt     2004-12-08 20:53:07 +0000 536) axt->frame = 0;
+810304ec (galt     2004-12-08 20:53:07 +0000 537) axt->score=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 538) axt->qStart=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 539) axt->tStart=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 540) axt->qEnd=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 541) axt->tEnd=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 542) axt->symCount=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 543) axt->qSym=NULL;
+810304ec (galt     2004-12-08 20:53:07 +0000 544) axt->tSym=NULL;
+810304ec (galt     2004-12-08 20:53:07 +0000 545) 
+810304ec (galt     2004-12-08 20:53:07 +0000 546) if ((Q==0) || (T==0))
+810304ec (galt     2004-12-08 20:53:07 +0000 547)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 548)     axt->qSym=cloneString("");
+810304ec (galt     2004-12-08 20:53:07 +0000 549)     axt->tSym=cloneString("");
+810304ec (galt     2004-12-08 20:53:07 +0000 550)     freez(&cells);
+810304ec (galt     2004-12-08 20:53:07 +0000 551)     return axt; 
+810304ec (galt     2004-12-08 20:53:07 +0000 552)     }
+810304ec (galt     2004-12-08 20:53:07 +0000 553) 
+810304ec (galt     2004-12-08 20:53:07 +0000 554) 
+810304ec (galt     2004-12-08 20:53:07 +0000 555) 
+810304ec (galt     2004-12-08 20:53:07 +0000 556) /* initialize origin corner */
+810304ec (galt     2004-12-08 20:53:07 +0000 557)     cells[0].bestm=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 558)     cells[0].bestd=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 559)     cells[0].besti=WORST;                 
+810304ec (galt     2004-12-08 20:53:07 +0000 560)     cells[0].backm='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 561)     cells[0].backd='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 562)     cells[0].backi='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 563) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 564)     dump2L(cells); 
+810304ec (galt     2004-12-08 20:53:07 +0000 565) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 566) 
+810304ec (galt     2004-12-08 20:53:07 +0000 567) /* initialize row 0 col 1 */
+810304ec (galt     2004-12-08 20:53:07 +0000 568)     cells[1].bestm=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 569)     cells[1].bestd=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 570)     cells[1].besti=-ss->gapOpen;
+810304ec (galt     2004-12-08 20:53:07 +0000 571)     cells[1].backm='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 572)     cells[1].backd='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 573)     cells[1].backi='m';
+810304ec (galt     2004-12-08 20:53:07 +0000 574) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 575)     dump2L(cells+1); 
+810304ec (galt     2004-12-08 20:53:07 +0000 576) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 577) 
+810304ec (galt     2004-12-08 20:53:07 +0000 578) /* initialize first row of sentinels */
+810304ec (galt     2004-12-08 20:53:07 +0000 579) for (c=2;c<lv;c++)
+810304ec (galt     2004-12-08 20:53:07 +0000 580)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 581)     cells[c].bestm=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 582)     cells[c].bestd=WORST;
+810304ec (galt     2004-12-08 20:53:07 +0000 583)     cells[c].besti=cells[c-1].besti-ss->gapExtend;
+810304ec (galt     2004-12-08 20:53:07 +0000 584)     cells[c].backm='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 585)     cells[c].backd='x';
+810304ec (galt     2004-12-08 20:53:07 +0000 586)     cells[c].backi='i';
+810304ec (galt     2004-12-08 20:53:07 +0000 587) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 588)     dump2L(cells+c); 
+810304ec (galt     2004-12-08 20:53:07 +0000 589) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 590)     }
+810304ec (galt     2004-12-08 20:53:07 +0000 591) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 592) printf("\n");
+810304ec (galt     2004-12-08 20:53:07 +0000 593) printf("\n");
+810304ec (galt     2004-12-08 20:53:07 +0000 594) #endif
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 595) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 596) k=ksize;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 597) 
+810304ec (galt     2004-12-08 20:53:07 +0000 598) ki++;  /* advance to next row */
+810304ec (galt     2004-12-08 20:53:07 +0000 599) 
+810304ec (galt     2004-12-08 20:53:07 +0000 600) r=1;   /* r is really the rows all done */
+810304ec (galt     2004-12-08 20:53:07 +0000 601) while(1)
+810304ec (galt     2004-12-08 20:53:07 +0000 602)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 603)     nrows = k;  /* do k rows at a time, save every kth row on 1st pass */
+810304ec (galt     2004-12-08 20:53:07 +0000 604)     if (nrows > (lw-r)) {nrows=lw-r;}  /* may get less than k on last set */
+810304ec (galt     2004-12-08 20:53:07 +0000 605)     kmax = ki+nrows-1;
+810304ec (galt     2004-12-08 20:53:07 +0000 606) 
+810304ec (galt     2004-12-08 20:53:07 +0000 607)     kForwardAffine(cells, ki, kmax, r-ki, cmost, lv, q, t, ss, &bestbest, &bestr, &bestc, &bestdir);
+810304ec (galt     2004-12-08 20:53:07 +0000 608) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 609) printf("\n");
+810304ec (galt     2004-12-08 20:53:07 +0000 610) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 611) 
+810304ec (galt     2004-12-08 20:53:07 +0000 612)     r += nrows;
+810304ec (galt     2004-12-08 20:53:07 +0000 613) 
+810304ec (galt     2004-12-08 20:53:07 +0000 614)     if (nrows == k)   /* got full set of k rows */
+810304ec (galt     2004-12-08 20:53:07 +0000 615) 	{
+810304ec (galt     2004-12-08 20:53:07 +0000 616) 	/* compress, save every kth row */     
+810304ec (galt     2004-12-08 20:53:07 +0000 617) 	/* optimize as a mem-copy */
+810304ec (galt     2004-12-08 20:53:07 +0000 618) 	memcpy(cells+ki*lv,cells+kmax*lv,sizeof(struct cell2L) *lv);    
+810304ec (galt     2004-12-08 20:53:07 +0000 619) 	}
+810304ec (galt     2004-12-08 20:53:07 +0000 620) 
+810304ec (galt     2004-12-08 20:53:07 +0000 621)     if (r >= lw){break;} /* we are done */
+810304ec (galt     2004-12-08 20:53:07 +0000 622)     
+810304ec (galt     2004-12-08 20:53:07 +0000 623)     ki++;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 624)     k--;        /* decreasing k is "moving boundary" */
+810304ec (galt     2004-12-08 20:53:07 +0000 625) }
+810304ec (galt     2004-12-08 20:53:07 +0000 626) 
+810304ec (galt     2004-12-08 20:53:07 +0000 627) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 628) printf("\nFWD PASS DONE. bestbest=%d bestr=%d bestc=%d bestdir=%c \n\n",bestbest,bestr,bestc,bestdir);
+810304ec (galt     2004-12-08 20:53:07 +0000 629) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 630) 
+810304ec (galt     2004-12-08 20:53:07 +0000 631) /* start doing backtrace */
+810304ec (galt     2004-12-08 20:53:07 +0000 632)     
+810304ec (galt     2004-12-08 20:53:07 +0000 633) /* adjust for reverse pass */
+810304ec (galt     2004-12-08 20:53:07 +0000 634) 
+810304ec (galt     2004-12-08 20:53:07 +0000 635) /* for local we automatically skip to bestr, bestc to begin tb */
+810304ec (galt     2004-12-08 20:53:07 +0000 636) 
+810304ec (galt     2004-12-08 20:53:07 +0000 637) if (bestbest <= 0)  /* null alignment */
+810304ec (galt     2004-12-08 20:53:07 +0000 638)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 639)     bestr=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 640)     bestc=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 641)     /* bestdir won't matter */
+810304ec (galt     2004-12-08 20:53:07 +0000 642)     }
+810304ec (galt     2004-12-08 20:53:07 +0000 643) 
+810304ec (galt     2004-12-08 20:53:07 +0000 644) r = bestr;
+810304ec (galt     2004-12-08 20:53:07 +0000 645) c = bestc;
+810304ec (galt     2004-12-08 20:53:07 +0000 646) dir = bestdir;
+810304ec (galt     2004-12-08 20:53:07 +0000 647) cmost = c;
+810304ec (galt     2004-12-08 20:53:07 +0000 648) 
+810304ec (galt     2004-12-08 20:53:07 +0000 649) axt->qEnd=bestc;
+810304ec (galt     2004-12-08 20:53:07 +0000 650) axt->tEnd=bestr;
+810304ec (galt     2004-12-08 20:53:07 +0000 651) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 652) temp = (2*ksize)+1;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 653) ki = (int)(temp-sqrt((temp*temp)-(8*r)))/2;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 654) rr = ((2*ksize*ki)+ki-(ki*ki))/2;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 655) kmax = ki+(r-rr);
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 656) k = ksize - ki;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 657) 
+810304ec (galt     2004-12-08 20:53:07 +0000 658) 
+810304ec (galt     2004-12-08 20:53:07 +0000 659) /* now that we jumped back into saved start-points,
+810304ec (galt     2004-12-08 20:53:07 +0000 660)    let's fill the array forward and start backtrace from there.
+810304ec (galt     2004-12-08 20:53:07 +0000 661) */
+810304ec (galt     2004-12-08 20:53:07 +0000 662) 
+810304ec (galt     2004-12-08 20:53:07 +0000 663) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 664) printf("bestr=%d, bestc=%d, bestdir=%c k=%d, ki=%d, kmax=%d\n",bestr,bestc,bestdir,k,ki,kmax);
+810304ec (galt     2004-12-08 20:53:07 +0000 665) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 666) 
+810304ec (galt     2004-12-08 20:53:07 +0000 667) kForwardAffine(cells, ki+1, kmax, rr-ki, cmost, lv, q, t, ss, &bestbest, &bestr, &bestc, &bestdir);
+810304ec (galt     2004-12-08 20:53:07 +0000 668)    
+810304ec (galt     2004-12-08 20:53:07 +0000 669) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 670) printf("\n(initial)BKWD PASS DONE. cmost=%d r=%d c=%d dir=%c \n\n",cmost,r,c,dir);
+810304ec (galt     2004-12-08 20:53:07 +0000 671) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 672) 
+810304ec (galt     2004-12-08 20:53:07 +0000 673) 
+810304ec (galt     2004-12-08 20:53:07 +0000 674) /* backtrace */   
+810304ec (galt     2004-12-08 20:53:07 +0000 675) 
+810304ec (galt     2004-12-08 20:53:07 +0000 676) /* handling for resulting ali'd strings when very long */
+810304ec (galt     2004-12-08 20:53:07 +0000 677) 
+810304ec (galt     2004-12-08 20:53:07 +0000 678) axt->symCount=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 679) axt->qSym = needLargeMem((Q+T+1)*sizeof(char));
+810304ec (galt     2004-12-08 20:53:07 +0000 680) axt->tSym = needLargeMem((Q+T+1)*sizeof(char));
+810304ec (galt     2004-12-08 20:53:07 +0000 681) btq=axt->qSym;
+810304ec (galt     2004-12-08 20:53:07 +0000 682) btt=axt->tSym;
+810304ec (galt     2004-12-08 20:53:07 +0000 683) while(1)
+810304ec (galt     2004-12-08 20:53:07 +0000 684)     {
+810304ec (galt     2004-12-08 20:53:07 +0000 685)     while(1)
+810304ec (galt     2004-12-08 20:53:07 +0000 686) 	{
+810304ec (galt     2004-12-08 20:53:07 +0000 687) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 688) 	printf("bt: r=%d, c=%d, dir=%c \n",r,c,dir);
+810304ec (galt     2004-12-08 20:53:07 +0000 689) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 690) 
+810304ec (galt     2004-12-08 20:53:07 +0000 691) 	
+810304ec (galt     2004-12-08 20:53:07 +0000 692)     	if ((r==0) && (c==0)){break;} /* hit origin, done */
+810304ec (galt     2004-12-08 20:53:07 +0000 693) 	if (r<rr){break;} /* ran out of targ seq, backup and reload */
+810304ec (galt     2004-12-08 20:53:07 +0000 694) 	if (dir=='x'){errAbort("unexpected error backtracing");} /* x only at origin */
+810304ec (galt     2004-12-08 20:53:07 +0000 695) 	if (dir=='s'){break;}   /* hit start, local ali */
+810304ec (galt     2004-12-08 20:53:07 +0000 696) 	if (dir=='m') /* match */
+810304ec (galt     2004-12-08 20:53:07 +0000 697) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 698) 	    *btq++=q[c-1];  /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 699) 	    *btt++=t[r-1];  /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 700) 	    axt->symCount++; 
+810304ec (galt     2004-12-08 20:53:07 +0000 701) 	    dir = cells[lv*(ki+r-rr)+c].backm;  /* follow backtrace */
+810304ec (galt     2004-12-08 20:53:07 +0000 702) 	    r--;            /* adjust coords to move in dir spec'd by back ptr */
+810304ec (galt     2004-12-08 20:53:07 +0000 703) 	    c--;
+810304ec (galt     2004-12-08 20:53:07 +0000 704) 	    cmost--;        /* decreases as query seq is aligned, so saves on unused areas */
+810304ec (galt     2004-12-08 20:53:07 +0000 705) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 706) 	else
+810304ec (galt     2004-12-08 20:53:07 +0000 707) 	    {
+810304ec (galt     2004-12-08 20:53:07 +0000 708) 	    if (dir=='d')  /* delete in query (gap) */
+810304ec (galt     2004-12-08 20:53:07 +0000 709) 		{
+810304ec (galt     2004-12-08 20:53:07 +0000 710) 		*btq++='-';     /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 711)     		*btt++=t[r-1];  /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 712)     		axt->symCount++; 
+810304ec (galt     2004-12-08 20:53:07 +0000 713) 		dir = cells[lv*(ki+r-rr)+c].backd;  /* follow backtrace */
+810304ec (galt     2004-12-08 20:53:07 +0000 714)     		r--;            /* adjust coords to move in dir spec'd by back ptr */
+810304ec (galt     2004-12-08 20:53:07 +0000 715) 		}
+810304ec (galt     2004-12-08 20:53:07 +0000 716) 	    else    /* insert in query (gap) */
+810304ec (galt     2004-12-08 20:53:07 +0000 717) 		{
+810304ec (galt     2004-12-08 20:53:07 +0000 718) 		*btq++=q[c-1];  /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 719)     		*btt++='-';     /* accumulate alignment output strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 720)     		axt->symCount++; 
+810304ec (galt     2004-12-08 20:53:07 +0000 721) 		dir = cells[lv*(ki+r-rr)+c].backi;  /* follow backtrace */
+810304ec (galt     2004-12-08 20:53:07 +0000 722)     		c--;
+810304ec (galt     2004-12-08 20:53:07 +0000 723)     		cmost--;        /* decreases as query seq is aligned, so saves on unused areas */
+810304ec (galt     2004-12-08 20:53:07 +0000 724) 		}
+810304ec (galt     2004-12-08 20:53:07 +0000 725) 	    }
+810304ec (galt     2004-12-08 20:53:07 +0000 726) 	
+810304ec (galt     2004-12-08 20:53:07 +0000 727) 	}
+810304ec (galt     2004-12-08 20:53:07 +0000 728) 
+810304ec (galt     2004-12-08 20:53:07 +0000 729)     /* back up and do it again */
+810304ec (galt     2004-12-08 20:53:07 +0000 730)     ki--;
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 731)     k++;   /* k grows as we move back up */ 
+810304ec (galt     2004-12-08 20:53:07 +0000 732)     rr-=k;
+810304ec (galt     2004-12-08 20:53:07 +0000 733)     kmax = ki+k-1;
+810304ec (galt     2004-12-08 20:53:07 +0000 734) 
+810304ec (galt     2004-12-08 20:53:07 +0000 735)     /* check for various termination conditions to stop main loop */
+810304ec (galt     2004-12-08 20:53:07 +0000 736)     if (ki < 0) {break;}
+810304ec (galt     2004-12-08 20:53:07 +0000 737)     if ((r==0)&&(c==0)) {break;}
+810304ec (galt     2004-12-08 20:53:07 +0000 738)     if (dir=='s') {break;}
+810304ec (galt     2004-12-08 20:53:07 +0000 739) 
+810304ec (galt     2004-12-08 20:53:07 +0000 740)     /* re-calculate array from previous saved kth row going back
+810304ec (galt     2004-12-08 20:53:07 +0000 741)        this is how we save memory, but have to regenerate half on average
+810304ec (galt     2004-12-08 20:53:07 +0000 742)        we are re-using the same call 
+810304ec (galt     2004-12-08 20:53:07 +0000 743)      */
+810304ec (galt     2004-12-08 20:53:07 +0000 744) 
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 745) #ifdef DEBUG
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 746) printf("bestr=%d, bestc=%d, bestdir=%c k=%d, ki=%d, kmax=%d\n",bestr,bestc,bestdir,k,ki,kmax);
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 747) #endif
+1d57cbc5 (galt     2004-12-13 19:56:31 +0000 748) 
+810304ec (galt     2004-12-08 20:53:07 +0000 749) 
+810304ec (galt     2004-12-08 20:53:07 +0000 750)     kForwardAffine(cells, ki+1, kmax, rr-ki, cmost, lv, q, t, ss, &bestbest, &bestr, &bestc, &bestdir);
+810304ec (galt     2004-12-08 20:53:07 +0000 751) 
+810304ec (galt     2004-12-08 20:53:07 +0000 752) #ifdef DEBUG
+810304ec (galt     2004-12-08 20:53:07 +0000 753)     printf("\nBKWD PASS DONE. cmost=%d r=%d c=%d\n\n",cmost,r,c);
+810304ec (galt     2004-12-08 20:53:07 +0000 754) #endif
+810304ec (galt     2004-12-08 20:53:07 +0000 755) 
+810304ec (galt     2004-12-08 20:53:07 +0000 756)     }
+810304ec (galt     2004-12-08 20:53:07 +0000 757) 
+810304ec (galt     2004-12-08 20:53:07 +0000 758) axt->qStart=c;
+810304ec (galt     2004-12-08 20:53:07 +0000 759) axt->tStart=r;
+810304ec (galt     2004-12-08 20:53:07 +0000 760) 
+810304ec (galt     2004-12-08 20:53:07 +0000 761) /* reverse backwards trace and zero-terminate strings */
+810304ec (galt     2004-12-08 20:53:07 +0000 762) 
+810304ec (galt     2004-12-08 20:53:07 +0000 763) reverseBytes(axt->qSym,axt->symCount);
+810304ec (galt     2004-12-08 20:53:07 +0000 764) reverseBytes(axt->tSym,axt->symCount);
+810304ec (galt     2004-12-08 20:53:07 +0000 765) axt->qSym[axt->symCount]=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 766) axt->tSym[axt->symCount]=0;
+810304ec (galt     2004-12-08 20:53:07 +0000 767) 
+810304ec (galt     2004-12-08 20:53:07 +0000 768) axt->score=bestbest;
+810304ec (galt     2004-12-08 20:53:07 +0000 769) 
+810304ec (galt     2004-12-08 20:53:07 +0000 770) 
+810304ec (galt     2004-12-08 20:53:07 +0000 771) /* 
+810304ec (galt     2004-12-08 20:53:07 +0000 772) should I test stringsize and if massively smaller, realloc string to save ram? 
+810304ec (galt     2004-12-08 20:53:07 +0000 773) */
+810304ec (galt     2004-12-08 20:53:07 +0000 774) 
+810304ec (galt     2004-12-08 20:53:07 +0000 775) freez(&cells);
+810304ec (galt     2004-12-08 20:53:07 +0000 776) 
+810304ec (galt     2004-12-08 20:53:07 +0000 777) return axt;
+810304ec (galt     2004-12-08 20:53:07 +0000 778) }
+810304ec (galt     2004-12-08 20:53:07 +0000 779) 
+810304ec (galt     2004-12-08 20:53:07 +0000 780) 
+810304ec (galt     2004-12-08 20:53:07 +0000 781) 
