@@ -40,4 +40,5 @@ mkdir m4 config
 
 # Now use autoreconf to bootstrap the autoconf/automake system.
 #
+echo "Running: autoreconf -fi"
 autoreconf -fi
