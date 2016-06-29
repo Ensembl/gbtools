@@ -42,3 +42,4 @@ mkdir m4 config
 #
 echo "Running: autoreconf -fi"
 autoreconf -fi
+echo "Done"
