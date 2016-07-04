@@ -81,7 +81,7 @@ AC_ARG_VAR(GLIB_GENMARSHAL, [The glib-genmarshal executable.])
 AC_CHECK_PROG(GLIB_GENMARSHAL, glib-genmarshal, glib-genmarshal)
 
 
-# Check for the curl library. This is only required by blixemh, so don't fail
+# Check for the curl library. This is optional, so don't fail
 # if we can't find it, but set the USE_LIBCURL to false. Note: I think we should 
 # probably be using pkg-config to find the curl dependencies, but that doesn't work
 # on my mac (perhaps because it's in /usr instead of /opt/local), so I just check for
@@ -162,7 +162,7 @@ echo \
 "
 
 if test "$HAVE_LIBCURL" -eq 0; then
-echo " Warning: libcurl not found; excluding blixemh
+echo " Warning: libcurl not found; some functionality will not be available
 "
 fi
 
