@@ -33,5 +33,6 @@
 #include <gbtools/gbtoolsGUI.hpp>
 #include <gbtools/gbtoolsPfetch.hpp>
 #include <gbtools/gbtoolsUtils.hpp>
+#include <gbtools/gbtoolsTrackhub.hpp>
 
 #endif /* gbtools_h_included */

@@ -10,9 +10,12 @@ libgbtools_la_SOURCES =
 
 libgbtools_la_LIBADD  = \
 src/gbtoolsCurl/libgbtoolsCurl.la \
+src/gbtoolsTrackhub/libgbtoolsTrackhub.la \
 src/gbtoolsGUI/libgbtoolsGUI.la \
 src/gbtoolsPfetch/libgbtoolsPfetch.la \
-src/gbtoolsUtils/libgbtoolsUtils.la
+src/gbtoolsUtils/libgbtoolsUtils.la \
+src/jsoncpp/libjsoncpp.la \
+src/blatSrc/libblatSrc.la 
 
 libgbtools_CXXFLAGS = -std=c++0x -g -Wall
 
