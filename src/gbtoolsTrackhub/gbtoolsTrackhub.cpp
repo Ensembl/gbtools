@@ -128,16 +128,23 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 // Create a Track class for the track in the given json and add it to the given list.
 // Recurse through any child tracks and add them to the new Track class's children.
 // Also add its file type (if it has one) to the list of types.
+// Pass in the visibility of the parent track, which will be used if the visibility of this track
+// is not set (or "none" if no parent has it set).
 void getTracks(Json::ValueIterator &iter, 
                list<Track> &track_list,
-               list<string> &file_types)
+               list<string> &file_types,
+               string visibility)
 {
   Json::Value js_track = *iter;
+
+  if (js_track["visibility"].isString())
+    visibility = js_track["visibility"].asString() ;
 
   Track track(js_track["track"].asString(),
               js_track["shortLabel"].asString(),
               js_track["bigDataUrl"].asString(),
-              js_track["type"].asString()
+              js_track["type"].asString(),
+              visibility
               );
 
   if (js_track["type"].isString())
@@ -147,7 +154,7 @@ void getTracks(Json::ValueIterator &iter,
   Json::Value js_children = js_track["members"];
 
   for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
-    getTracks(child, track.children_, file_types);
+    getTracks(child, track.children_, file_types, visibility);
 
   // Add the track to the list. Must do this last because it takes a copy.
   track_list.push_back(track);
@@ -647,7 +654,7 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
 
       for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
         {
-          getTracks(iter, tracks, file_types);
+          getTracks(iter, tracks, file_types, "none");
         }
 
       trackdb = TrackDb(trackdb_id, 

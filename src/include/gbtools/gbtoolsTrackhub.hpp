@@ -53,17 +53,21 @@ public:
   Track(std::string name,
         std::string shortLabel,
         std::string url,
-        std::string file_type) 
+        std::string file_type,
+        std::string visibility) 
     : name_(name),
       shortLabel_(shortLabel),
       url_(url),
-      file_type_(file_type)
+      file_type_(file_type),
+      visibility_(visibility)
   {};
 
   std::string name() const { return name_; };
   std::string description() const { return shortLabel_; };
   std::string url() const { return url_; };
   std::list<Track> children() const { return children_; };
+  std::string visibility() const { return visibility_; };
+  bool visible() const { return visibility_ != "hide"; };
 
   std::list<Track> children_;
 
@@ -72,6 +76,7 @@ private:
   std::string shortLabel_;
   std::string url_;
   std::string file_type_;
+  std::string visibility_;
 };
 
 
