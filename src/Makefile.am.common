@@ -6,7 +6,7 @@ $(DEPS_CFLAGS) \
 -I$(top_srcdir)/src/include \
 -I$(top_srcdir)/src/include/blatSrc
 
-AM_CXXFLAGS = -std=c++0x -g -Wall
+AM_CXXFLAGS = -std=c++11 -g -Wall
 
 # these don't work....or maybe they do...try again...???
 #libgbtools_la_CPPFLAGS =  $(DEPS_CFLAGS)
