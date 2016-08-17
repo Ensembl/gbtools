@@ -151,6 +151,41 @@ private:
 };
 
 
+// Class to hold info about a track hub
+class Trackhub
+{
+public:
+  Trackhub() 
+    : name_(""), 
+      shortLabel_(""),
+      longLabel_(""),
+      url_("")
+  {} ;
+
+  Trackhub(std::string name,
+           std::string shortLabel,
+           std::string longLabel,
+           std::string url) 
+    : name_(""), 
+      shortLabel_(""),
+      longLabel_(""),
+      url_("")
+  {} ;
+
+  std::string name() { return name_; } ;
+  std::string label() { return shortLabel_; } ;
+  std::string description() { return longLabel_; } ;
+  std::string url() { return url_; } ;
+
+private:
+  std::string name_ ;
+  std::string shortLabel_ ;
+  std::string longLabel_ ;
+  std::string url_ ;
+} ;
+
+
+
 /* Class for accessing the Ensembl Track Hub Registry API */
 class Registry
 {
@@ -167,7 +202,7 @@ public:
   std::string version(std::string &err_msg);
   std::list<std::string> species(std::string &err_msg);
   std::map<std::string, std::list<std::string>> assemblies(std::string &err_msg);
-  Json::Value trackhubs(std::string &err_msg);
+  std::list<Trackhub> trackhubs(std::string &err_msg);
 
   bool getSearchPage(std::stringstream &payload_ss,
                      const int page_no, std::list<TrackDb> &result,
@@ -225,7 +260,6 @@ private:
 } // namespace trackhub
 
 
-void testTrackhub(); // temp function for testing
 
 } /* namespace gbtools */
 

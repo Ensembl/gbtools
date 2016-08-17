@@ -550,10 +550,24 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
 }
 
 
-Json::Value Registry::trackhubs(string &err_msg)
+list<Trackhub> Registry::trackhubs(string &err_msg)
 {
+  list<Trackhub> trackhubs;
   Json::Value js = getRequest(API_INFO_TRACKHUBS, false, err_msg);
-  return js;
+
+  // Loop through each trackhub in the results
+  for (Json::ValueIterator iter = js.begin(); iter != js.end(); ++iter)
+    {
+      // Extract the info about this trackhub
+      Json::Value item_js = *iter;
+
+      trackhubs.push_back(Trackhub(item_js["name"].asString(),
+                                   item_js["shortLabel"].asString(),
+                                   item_js["longLabel"].asString(),
+                                   item_js["url"].asString()) );
+    }
+  
+  return trackhubs;
 }
 
 
