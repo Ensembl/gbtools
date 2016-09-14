@@ -191,7 +191,9 @@ class Registry
 {
 public:
 
+  //
   // Construct/destruct
+  //
   Registry();
   ~Registry();
 
@@ -230,6 +232,13 @@ public:
   // Query
   //
   bool loggedIn();
+
+  //
+  // Set properties
+  //
+  void setDebug(const bool debug);
+  void setProxy(const char *proxy);
+  void setProxy(const std::string &proxy);
 
 private:
   curl_slist* getHeaders(const bool authorise);

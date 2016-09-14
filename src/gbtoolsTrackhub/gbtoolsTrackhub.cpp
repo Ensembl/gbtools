@@ -248,12 +248,32 @@ Registry::Registry()
                 NULL);
 }
 
-
 Registry::~Registry()
 {
 }
 
 
+void Registry::setDebug(const bool debug)
+{
+  CURLObjectSet(curl_object_get_,    "debug", debug, NULL);
+  CURLObjectSet(curl_object_post_,   "debug", debug, NULL);
+  CURLObjectSet(curl_object_delete_, "debug", debug, NULL);
+}
+
+void Registry::setProxy(const char *proxy)
+{
+  CURLObjectSet(curl_object_get_,    "proxy", proxy, NULL);
+  CURLObjectSet(curl_object_post_,   "proxy", proxy, NULL);
+  CURLObjectSet(curl_object_delete_, "proxy", proxy, NULL);
+}
+
+void Registry::setProxy(const string &proxy)
+{
+  if (!proxy.empty())
+    setProxy(proxy.c_str());
+  else
+    setProxy(NULL);
+}
 
 
 
