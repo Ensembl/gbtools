@@ -197,6 +197,8 @@ public:
   Registry();
   ~Registry();
 
+  void initCurl() ;
+
   //
   // API functions
   //
@@ -262,6 +264,9 @@ private:
 
   Json::Reader json_reader_;
   Json::FastWriter json_writer_;
+
+  bool debug_ ;
+  std::string proxy_ ;
 };
 
 
