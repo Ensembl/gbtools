@@ -225,9 +225,13 @@ Registry::Registry()
     curl_object_post_(NULL),
     curl_object_delete_(NULL),
     debug_(false),
-    proxy_("")
+    proxy_(""),
+    useragent_("")
 {
   host_ = TRACKHUB_REGISTRY_HOST;
+
+  useragent_ = "gbtools/" ;
+  useragent += gbtools::UtilsGetVersionString() ;
 }
 
 Registry::~Registry()
@@ -279,6 +283,13 @@ void Registry::initCurl()
       CURLObjectSet(curl_object_post_,   "proxy", proxy_.c_str(), NULL);
       CURLObjectSet(curl_object_delete_, "proxy", proxy_.c_str(), NULL);
     }
+
+  if (!useragent_.empty())
+    {
+      CURLObjectSet(curl_object_get_,    "useragent", useragent_.c_str(), NULL);
+      CURLObjectSet(curl_object_post_,   "useragent", useragent_.c_str(), NULL);
+      CURLObjectSet(curl_object_delete_, "useragent", useragent_.c_str(), NULL);
+    }
 }
 
 
@@ -287,14 +298,14 @@ void Registry::setDebug(const bool debug)
   debug_ = debug ;
 }
 
-void Registry::setProxy(const char *proxy)
+void Registry::setProxy(const string &proxy)
 {
   proxy_ = proxy ;
 }
 
-void Registry::setProxy(const string &proxy)
+void Registry::setUserAgent(const string &useragent)
 {
-  proxy_ = proxy ;
+  useragent_ = useragent ;
 }
 
 
