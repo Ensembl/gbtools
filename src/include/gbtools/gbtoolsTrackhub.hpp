@@ -68,6 +68,7 @@ public:
   std::list<Track> children() const { return children_; };
   std::string visibility() const { return visibility_; };
   bool visible() const { return visibility_ != "hide"; };
+  std::string fileType() const { return file_type_; };
 
   std::list<Track> children_;
 
