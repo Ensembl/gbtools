@@ -128,16 +128,23 @@ size_t curlReadDataCB(char *data, size_t size, size_t nmemb, CurlReadData *read_
 // Create a Track class for the track in the given json and add it to the given list.
 // Recurse through any child tracks and add them to the new Track class's children.
 // Also add its file type (if it has one) to the list of types.
+// Pass in the visibility of the parent track, which will be used if the visibility of this track
+// is not set (or "none" if no parent has it set).
 void getTracks(Json::ValueIterator &iter, 
                list<Track> &track_list,
-               list<string> &file_types)
+               list<string> &file_types,
+               string visibility)
 {
   Json::Value js_track = *iter;
+
+  if (js_track["visibility"].isString())
+    visibility = js_track["visibility"].asString() ;
 
   Track track(js_track["track"].asString(),
               js_track["shortLabel"].asString(),
               js_track["bigDataUrl"].asString(),
-              js_track["type"].asString()
+              js_track["type"].asString(),
+              visibility
               );
 
   if (js_track["type"].isString())
@@ -147,7 +154,7 @@ void getTracks(Json::ValueIterator &iter,
   Json::Value js_children = js_track["members"];
 
   for (Json::ValueIterator child = js_children.begin(); child != js_children.end(); ++child)
-    getTracks(child, track.children_, file_types);
+    getTracks(child, track.children_, file_types, visibility);
 
   // Add the track to the list. Must do this last because it takes a copy.
   track_list.push_back(track);
@@ -214,8 +221,30 @@ namespace trackhub
 
 
 Registry::Registry()
+  : curl_object_get_(NULL),
+    curl_object_post_(NULL),
+    curl_object_delete_(NULL),
+    debug_(false),
+    proxy_("")
 {
   host_ = TRACKHUB_REGISTRY_HOST;
+}
+
+Registry::~Registry()
+{
+}
+
+
+void Registry::initCurl()
+{
+  if (curl_object_get_)
+    CURLObjectDestroy(curl_object_get_) ;
+
+  if (curl_object_post_)
+    CURLObjectDestroy(curl_object_post_) ;
+
+  if (curl_object_delete_)
+    CURLObjectDestroy(curl_object_delete_) ;
 
   // Set up curl objects for GET/POST requests. Set the properties here that will be 
   // the same for all requests.  */
@@ -239,14 +268,34 @@ Registry::Registry()
                 "writefunction",  curlWriteDataCB,
                 "customrequest", "DELETE",
                 NULL);
+
+  CURLObjectSet(curl_object_get_,    "debug", debug_, NULL);
+  CURLObjectSet(curl_object_post_,   "debug", debug_, NULL);
+  CURLObjectSet(curl_object_delete_, "debug", debug_, NULL);
+
+  if (!proxy_.empty())
+    {
+      CURLObjectSet(curl_object_get_,    "proxy", proxy_.c_str(), NULL);
+      CURLObjectSet(curl_object_post_,   "proxy", proxy_.c_str(), NULL);
+      CURLObjectSet(curl_object_delete_, "proxy", proxy_.c_str(), NULL);
+    }
 }
 
 
-Registry::~Registry()
+void Registry::setDebug(const bool debug)
 {
+  debug_ = debug ;
 }
 
+void Registry::setProxy(const char *proxy)
+{
+  proxy_ = proxy ;
+}
 
+void Registry::setProxy(const string &proxy)
+{
+  proxy_ = proxy ;
+}
 
 
 
@@ -306,6 +355,8 @@ string Registry::doGetRequest(const string &url,
 
   curl_slist *headers = getHeaders(authorise);
 
+  initCurl() ;
+
   CURLObjectSet(curl_object_get_,
                 "url",            url.c_str(),
                 "httpheader",     headers, 
@@ -336,6 +387,8 @@ string Registry::doDeleteRequest(const string &url,
 
   curl_slist *headers = getHeaders(authorise);
 
+  initCurl() ;
+
   CURLObjectSet(curl_object_delete_,
                 "url",            url.c_str(),
                 "httpheader",     headers, 
@@ -345,7 +398,7 @@ string Registry::doDeleteRequest(const string &url,
   CURLObjectStatus res = CURLObjectPerform(curl_object_delete_, FALSE);
   
   if (response_code)
-    g_object_get(curl_object_get_, "response-code", response_code, NULL) ;
+    g_object_get(curl_object_delete_, "response-code", response_code, NULL) ;
 
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
@@ -368,6 +421,8 @@ string Registry::doPostRequest(const string &url,
 
   CurlReadData read_data(postfields.c_str());
   curl_slist *headers = postHeaders(authorise);
+
+  initCurl() ;
 
   CURLObjectSet(curl_object_post_,
                 "url",            url.c_str(),
@@ -543,10 +598,24 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
 }
 
 
-Json::Value Registry::trackhubs(string &err_msg)
+list<Trackhub> Registry::trackhubs(string &err_msg)
 {
+  list<Trackhub> trackhubs;
   Json::Value js = getRequest(API_INFO_TRACKHUBS, false, err_msg);
-  return js;
+
+  // Loop through each trackhub in the results
+  for (Json::ValueIterator iter = js.begin(); iter != js.end(); ++iter)
+    {
+      // Extract the info about this trackhub
+      Json::Value item_js = *iter;
+
+      trackhubs.push_back(Trackhub(item_js["name"].asString(),
+                                   item_js["shortLabel"].asString(),
+                                   item_js["longLabel"].asString(),
+                                   item_js["url"].asString()) );
+    }
+  
+  return trackhubs;
 }
 
 
@@ -647,7 +716,7 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
 
       for (Json::ValueIterator iter = tracks_js.begin(); iter != tracks_js.end(); ++iter)
         {
-          getTracks(iter, tracks, file_types);
+          getTracks(iter, tracks, file_types, "none");
         }
 
       trackdb = TrackDb(trackdb_id, 
@@ -673,6 +742,8 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
 bool Registry::login(const string &user, const string &pwd, string &err_msg)
 {
   bool ok = false;
+
+  initCurl() ;
 
   CURLObjectSet(curl_object_get_,
                 "username", user.c_str(), 

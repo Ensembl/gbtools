@@ -53,17 +53,21 @@ public:
   Track(std::string name,
         std::string shortLabel,
         std::string url,
-        std::string file_type) 
+        std::string file_type,
+        std::string visibility) 
     : name_(name),
       shortLabel_(shortLabel),
       url_(url),
-      file_type_(file_type)
+      file_type_(file_type),
+      visibility_(visibility)
   {};
 
   std::string name() const { return name_; };
   std::string description() const { return shortLabel_; };
   std::string url() const { return url_; };
   std::list<Track> children() const { return children_; };
+  std::string visibility() const { return visibility_; };
+  bool visible() const { return visibility_ != "hide"; };
 
   std::list<Track> children_;
 
@@ -72,6 +76,7 @@ private:
   std::string shortLabel_;
   std::string url_;
   std::string file_type_;
+  std::string visibility_;
 };
 
 
@@ -146,14 +151,53 @@ private:
 };
 
 
+// Class to hold info about a track hub
+class Trackhub
+{
+public:
+  Trackhub() 
+    : name_(""), 
+      shortLabel_(""),
+      longLabel_(""),
+      url_("")
+  {} ;
+
+  Trackhub(std::string name,
+           std::string shortLabel,
+           std::string longLabel,
+           std::string url) 
+    : name_(""), 
+      shortLabel_(""),
+      longLabel_(""),
+      url_("")
+  {} ;
+
+  std::string name() { return name_; } ;
+  std::string label() { return shortLabel_; } ;
+  std::string description() { return longLabel_; } ;
+  std::string url() { return url_; } ;
+
+private:
+  std::string name_ ;
+  std::string shortLabel_ ;
+  std::string longLabel_ ;
+  std::string url_ ;
+} ;
+
+
+
 /* Class for accessing the Ensembl Track Hub Registry API */
 class Registry
 {
 public:
 
+  //
   // Construct/destruct
+  //
   Registry();
   ~Registry();
+
+  void initCurl() ;
 
   //
   // API functions
@@ -162,7 +206,7 @@ public:
   std::string version(std::string &err_msg);
   std::list<std::string> species(std::string &err_msg);
   std::map<std::string, std::list<std::string>> assemblies(std::string &err_msg);
-  Json::Value trackhubs(std::string &err_msg);
+  std::list<Trackhub> trackhubs(std::string &err_msg);
 
   bool getSearchPage(std::stringstream &payload_ss,
                      const int page_no, std::list<TrackDb> &result,
@@ -191,6 +235,13 @@ public:
   //
   bool loggedIn();
 
+  //
+  // Set properties
+  //
+  void setDebug(const bool debug);
+  void setProxy(const char *proxy);
+  void setProxy(const std::string &proxy);
+
 private:
   curl_slist* getHeaders(const bool authorise);
   curl_slist* postHeaders(const bool authorise);
@@ -213,6 +264,9 @@ private:
 
   Json::Reader json_reader_;
   Json::FastWriter json_writer_;
+
+  bool debug_ ;
+  std::string proxy_ ;
 };
 
 
@@ -220,7 +274,6 @@ private:
 } // namespace trackhub
 
 
-void testTrackhub(); // temp function for testing
 
 } /* namespace gbtools */
 
