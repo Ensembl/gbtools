@@ -221,8 +221,30 @@ namespace trackhub
 
 
 Registry::Registry()
+  : curl_object_get_(NULL),
+    curl_object_post_(NULL),
+    curl_object_delete_(NULL),
+    debug_(false),
+    proxy_("")
 {
   host_ = TRACKHUB_REGISTRY_HOST;
+}
+
+Registry::~Registry()
+{
+}
+
+
+void Registry::initCurl()
+{
+  if (curl_object_get_)
+    CURLObjectDestroy(curl_object_get_) ;
+
+  if (curl_object_post_)
+    CURLObjectDestroy(curl_object_post_) ;
+
+  if (curl_object_delete_)
+    CURLObjectDestroy(curl_object_delete_) ;
 
   // Set up curl objects for GET/POST requests. Set the properties here that will be 
   // the same for all requests.  */
@@ -246,33 +268,33 @@ Registry::Registry()
                 "writefunction",  curlWriteDataCB,
                 "customrequest", "DELETE",
                 NULL);
-}
 
-Registry::~Registry()
-{
+  CURLObjectSet(curl_object_get_,    "debug", debug_, NULL);
+  CURLObjectSet(curl_object_post_,   "debug", debug_, NULL);
+  CURLObjectSet(curl_object_delete_, "debug", debug_, NULL);
+
+  if (!proxy_.empty())
+    {
+      CURLObjectSet(curl_object_get_,    "proxy", proxy_.c_str(), NULL);
+      CURLObjectSet(curl_object_post_,   "proxy", proxy_.c_str(), NULL);
+      CURLObjectSet(curl_object_delete_, "proxy", proxy_.c_str(), NULL);
+    }
 }
 
 
 void Registry::setDebug(const bool debug)
 {
-  CURLObjectSet(curl_object_get_,    "debug", debug, NULL);
-  CURLObjectSet(curl_object_post_,   "debug", debug, NULL);
-  CURLObjectSet(curl_object_delete_, "debug", debug, NULL);
+  debug_ = debug ;
 }
 
 void Registry::setProxy(const char *proxy)
 {
-  CURLObjectSet(curl_object_get_,    "proxy", proxy, NULL);
-  CURLObjectSet(curl_object_post_,   "proxy", proxy, NULL);
-  CURLObjectSet(curl_object_delete_, "proxy", proxy, NULL);
+  proxy_ = proxy ;
 }
 
 void Registry::setProxy(const string &proxy)
 {
-  if (!proxy.empty())
-    setProxy(proxy.c_str());
-  else
-    setProxy(NULL);
+  proxy_ = proxy ;
 }
 
 
@@ -333,6 +355,8 @@ string Registry::doGetRequest(const string &url,
 
   curl_slist *headers = getHeaders(authorise);
 
+  initCurl() ;
+
   CURLObjectSet(curl_object_get_,
                 "url",            url.c_str(),
                 "httpheader",     headers, 
@@ -363,6 +387,8 @@ string Registry::doDeleteRequest(const string &url,
 
   curl_slist *headers = getHeaders(authorise);
 
+  initCurl() ;
+
   CURLObjectSet(curl_object_delete_,
                 "url",            url.c_str(),
                 "httpheader",     headers, 
@@ -372,7 +398,7 @@ string Registry::doDeleteRequest(const string &url,
   CURLObjectStatus res = CURLObjectPerform(curl_object_delete_, FALSE);
   
   if (response_code)
-    g_object_get(curl_object_get_, "response-code", response_code, NULL) ;
+    g_object_get(curl_object_delete_, "response-code", response_code, NULL) ;
 
   if (res == CURL_STATUS_FAILED)
     cout << "CURL perform failed" << endl;
@@ -395,6 +421,8 @@ string Registry::doPostRequest(const string &url,
 
   CurlReadData read_data(postfields.c_str());
   curl_slist *headers = postHeaders(authorise);
+
+  initCurl() ;
 
   CURLObjectSet(curl_object_post_,
                 "url",            url.c_str(),
@@ -714,6 +742,8 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
 bool Registry::login(const string &user, const string &pwd, string &err_msg)
 {
   bool ok = false;
+
+  initCurl() ;
 
   CURLObjectSet(curl_object_get_,
                 "username", user.c_str(), 
