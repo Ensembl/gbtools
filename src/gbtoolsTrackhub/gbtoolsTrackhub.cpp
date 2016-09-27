@@ -37,6 +37,7 @@
 
 #include <gbtools/gbtoolsTrackhub.hpp>
 #include <gbtools/gbtoolsCurl.hpp>
+#include <gbtools/gbtoolsUtils.hpp>
 
 
 using namespace std;
@@ -231,7 +232,7 @@ Registry::Registry()
   host_ = TRACKHUB_REGISTRY_HOST;
 
   useragent_ = "gbtools/" ;
-  useragent += gbtools::UtilsGetVersionString() ;
+  useragent_ += UtilsGetVersionString() ;
 }
 
 Registry::~Registry()
