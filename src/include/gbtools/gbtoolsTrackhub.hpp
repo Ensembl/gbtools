@@ -68,6 +68,7 @@ public:
   std::list<Track> children() const { return children_; };
   std::string visibility() const { return visibility_; };
   bool visible() const { return visibility_ != "hide"; };
+  std::string fileType() const { return file_type_; };
 
   std::list<Track> children_;
 
@@ -239,8 +240,8 @@ public:
   // Set properties
   //
   void setDebug(const bool debug);
-  void setProxy(const char *proxy);
   void setProxy(const std::string &proxy);
+  void setUserAgent(const std::string &useragent);
 
 private:
   curl_slist* getHeaders(const bool authorise);
@@ -267,6 +268,7 @@ private:
 
   bool debug_ ;
   std::string proxy_ ;
+  std::string useragent_ ;
 };
 
 
