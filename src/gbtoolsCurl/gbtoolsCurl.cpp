@@ -692,6 +692,7 @@ static void curl_object_set_property(GObject      *gobject,
     case CURLOPT_HTTPHEADER:
     case CURLOPT_COOKIEFILE:
     case CURLOPT_PROXY:
+    case CURLOPT_USERAGENT:
     case CURLOPT_IPRESOLVE:
     case CURLOPT_CAINFO:
     case CURLOPT_USERPWD:
