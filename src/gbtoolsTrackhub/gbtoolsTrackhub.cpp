@@ -285,6 +285,13 @@ void Registry::initCurl()
       CURLObjectSet(curl_object_delete_, "proxy", proxy_.c_str(), NULL);
     }
 
+  if (!cainfo_.empty())
+    {
+      CURLObjectSet(curl_object_get_,    "cainfo", cainfo_.c_str(), NULL);
+      CURLObjectSet(curl_object_post_,   "cainfo", cainfo_.c_str(), NULL);
+      CURLObjectSet(curl_object_delete_, "cainfo", cainfo_.c_str(), NULL);
+    }
+
   if (!useragent_.empty())
     {
       CURLObjectSet(curl_object_get_,    "useragent", useragent_.c_str(), NULL);
@@ -302,6 +309,11 @@ void Registry::setDebug(const bool debug)
 void Registry::setProxy(const string &proxy)
 {
   proxy_ = proxy ;
+}
+
+void Registry::setCainfo(const string &cainfo)
+{
+  cainfo_ = cainfo ;
 }
 
 void Registry::setUserAgent(const string &useragent)

@@ -241,6 +241,7 @@ public:
   //
   void setDebug(const bool debug);
   void setProxy(const std::string &proxy);
+  void setCainfo(const std::string &cainfo);
   void setUserAgent(const std::string &useragent);
 
 private:
@@ -268,6 +269,7 @@ private:
 
   bool debug_ ;
   std::string proxy_ ;
+  std::string cainfo_ ;
   std::string useragent_ ;
 };
 
