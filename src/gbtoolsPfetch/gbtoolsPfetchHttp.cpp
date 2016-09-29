@@ -83,11 +83,10 @@ namespace gbtools
                          void *user_data)
     : Pfetch{location, reader_func, error_func, closed_func, user_data},
     http_port_{port},
-    cookie_jar_location_{strdup(cookie_jar)},
+    cookie_jar_location_{(cookie_jar ? strdup(cookie_jar) : NULL)},
     ipresolve_{ipresolve}, cainfo_{(cainfo ? strdup(cainfo) : NULL)}, proxy_{(proxy ? strdup(proxy) : NULL)},
     curl_object_{NULL}, request_counter_{0}
 {
-
   return ;
 }
 
