@@ -35,8 +35,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #include <gbtools/gbtoolsPfetch.hpp>
+#include <gbtools/gbtoolsUtils.hpp>
 
 
 namespace gbtools
@@ -128,6 +130,9 @@ namespace gbtools
 
     if((post_data = build_post_data(pfetch_data, opts_.full, location_, sequence)))
       {
+        std::string useragent = "gbtools/" ;
+        useragent += UtilsGetVersionString() ;
+
         CURLObjectSet(pfetch_data->curl_object,
                       /* general settings */
                       "debug", opts_.debug,
@@ -144,6 +149,7 @@ namespace gbtools
                       "writedata",      pfetch_data,
                       "headerfunction", http_curl_header_func,
                       "headerdata",     pfetch_data,
+                      "useragent",      useragent.c_str(),
                       /* end of options */
                       NULL) ;
 
