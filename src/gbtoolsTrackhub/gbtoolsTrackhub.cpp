@@ -137,14 +137,29 @@ void getTracks(Json::ValueIterator &iter,
                string visibility)
 {
   Json::Value js_track = *iter;
+  int fields = 0 ;
 
   if (js_track["visibility"].isString())
-    visibility = js_track["visibility"].asString() ;
+    {
+      visibility = js_track["visibility"].asString() ;
+    }
+
+  if (js_track["standard_fields"].isString())
+    {
+      try
+        {
+          fields = stoi(js_track["standard_fields"].asString()) ;
+        }
+      catch (exception &e)
+        {
+        }
+    }
 
   Track track(js_track["track"].asString(),
               js_track["shortLabel"].asString(),
               js_track["bigDataUrl"].asString(),
               js_track["type"].asString(),
+              fields,
               visibility
               );
 

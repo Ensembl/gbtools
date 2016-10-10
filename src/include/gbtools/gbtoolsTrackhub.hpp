@@ -54,11 +54,13 @@ public:
         std::string shortLabel,
         std::string url,
         std::string file_type,
+        int fields,
         std::string visibility) 
     : name_(name),
       shortLabel_(shortLabel),
       url_(url),
       file_type_(file_type),
+      fields_(fields),
       visibility_(visibility)
   {};
 
@@ -69,6 +71,7 @@ public:
   std::string visibility() const { return visibility_; };
   bool visible() const { return visibility_ != "hide"; };
   std::string fileType() const { return file_type_; };
+  int fields() const { return fields_; };
 
   std::list<Track> children_;
 
@@ -77,6 +80,7 @@ private:
   std::string shortLabel_;
   std::string url_;
   std::string file_type_;
+  int fields_;
   std::string visibility_;
 };
 
