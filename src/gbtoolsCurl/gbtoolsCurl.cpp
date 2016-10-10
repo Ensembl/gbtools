@@ -728,7 +728,7 @@ static void curl_object_set_property(GObject      *gobject,
           gpointer ptr = g_value_get_pointer(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%x'\n", param_id, ptr);
+	    g_message("Setting param '%d' to '%p'\n", param_id, ptr);
 
           curl_object->last_easy_status =
             curl_easy_setopt(curl_object->easy, (CURLoption)param_id, ptr);	
@@ -750,7 +750,7 @@ static void curl_object_set_property(GObject      *gobject,
           long val = g_value_get_long(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%f'\n", param_id, val);
+	    g_message("Setting param '%d' to '%f'\n", param_id, (double)val);
 
           curl_object->last_easy_status =
             curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
@@ -776,7 +776,7 @@ static void curl_object_set_property(GObject      *gobject,
           gpointer val = g_value_get_pointer(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%x'\n", param_id, val);
+	    g_message("Setting param '%d' to '%p'\n", param_id, val);
 
 	  curl_object->last_easy_status =
 	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
