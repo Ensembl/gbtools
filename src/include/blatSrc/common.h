@@ -93,8 +93,14 @@
 
 
 /* Let's pretend C has a boolean type. */
-#define TRUE 1
-#define FALSE 0
+#ifndef	FALSE
+#define	FALSE	(0)
+#endif
+
+#ifndef	TRUE
+#define	TRUE	(!FALSE)
+#endif
+
 #define boolean int
 #ifndef	__cplusplus
 #ifndef bool
