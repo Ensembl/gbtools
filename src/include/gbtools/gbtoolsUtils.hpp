@@ -44,6 +44,10 @@ const char *UtilsGetVersionString() ;
 const char *UtilsGetVersionTitle() ;
 
 
+void UtilsGlobalThreadLock(void) ;
+void UtilsGlobalThreadUnlock(void) ;
+
+
 } /* gbtools namespace */
 
 #endif /* _gbtoolsUtils_h_included_ */

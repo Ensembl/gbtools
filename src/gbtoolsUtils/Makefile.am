@@ -5,7 +5,9 @@ SUBDIRS = .
 
 noinst_LTLIBRARIES = libgbtoolsUtils.la
 
-libgbtoolsUtils_la_SOURCES = gbtoolsUtils.cpp
+libgbtoolsUtils_la_SOURCES = \
+gbtoolsThreadLock.cpp \
+gbtoolsUtils.cpp
 
 # Extra files to remove for the maintainer-clean target.
 #
