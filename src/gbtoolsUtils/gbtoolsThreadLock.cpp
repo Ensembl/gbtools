@@ -69,12 +69,12 @@ static pthread_mutex_t global_thread_lock_G ;
 // Lock the thread:
 //
 // If the attempt to lock is valid the function will either lock and return immediately or block
-// until the lock can be made, in either case the function returns 'true' and errno is left
+// until the lock can be made, in either case the function returns 'true' and err_num is left
 // untouched.
-// If the thread tries to lock when it has already locked then 'false' is returned and errno
+// If the thread tries to lock when it has already locked then 'false' is returned and err_num
 // (if supplied) is set to the system errno.
 //
-bool UtilsGlobalThreadLock(int *errno)
+bool UtilsGlobalThreadLock(int *err_num)
 {
   bool result = false ;
   int status ;
@@ -82,8 +82,8 @@ bool UtilsGlobalThreadLock(int *errno)
   if ((status = pthread_once(&once_control_G,  once_init_routine)) != 0)
     {
       // This shouldn't ever really happen but we have to catch it.
-      if (errno)
-        *errno = status ;
+      if (err_num)
+        *err_num = status ;
 
       result = false ;
     }
@@ -92,8 +92,8 @@ bool UtilsGlobalThreadLock(int *errno)
     {
       if ((status = pthread_mutex_lock(&global_thread_lock_G)) != 0)
         {
-          if (errno)
-            *errno = status ;
+          if (err_num)
+            *err_num = status ;
 
           result = false ;
         }
@@ -109,12 +109,13 @@ bool UtilsGlobalThreadLock(int *errno)
 
 // Unlock the thread:
 //
-// If the attempt to unlock is valid the function will unlock the mutex and return 'true'.
+// If the attempt to unlock is valid the function will unlock the mutex and return 'true'
+// and err_num is left untouched.
 //
 // If the thread tries to unlock without previously having locked then 'false' is returned
-// and errno (if supplied) is set to the system errno.
+// and err_num (if supplied) is set to the system errno.
 //
-bool UtilsGlobalThreadUnlock(int *errno)
+bool UtilsGlobalThreadUnlock(int *err_num)
 {
   bool result = false ;
 
@@ -124,8 +125,8 @@ bool UtilsGlobalThreadUnlock(int *errno)
 
       if ((status = pthread_mutex_unlock(&global_thread_lock_G)) != 0)
         {
-          if (errno)
-            *errno = status ;
+          if (err_num)
+            *err_num = status ;
 
           result = false ;
         }

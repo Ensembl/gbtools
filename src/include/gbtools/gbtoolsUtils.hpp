@@ -43,8 +43,8 @@ namespace gbtools
   const char *UtilsGetVersionString() ;
   const char *UtilsGetVersionTitle() ;
 
-  bool UtilsGlobalThreadLock(int *errno) ;
-  bool UtilsGlobalThreadUnlock(int *errno) ;
+  bool UtilsGlobalThreadLock(int *err_num) ;
+  bool UtilsGlobalThreadUnlock(int *err_num) ;
 
 
 } /* gbtools namespace */
