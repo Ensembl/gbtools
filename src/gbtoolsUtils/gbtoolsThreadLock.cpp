@@ -36,6 +36,8 @@
 #include <gbtools/gbtoolsUtils.hpp>
 
 
+namespace gbtools 
+{
 
 
 static void once_init_routine(void) ;
@@ -192,3 +194,8 @@ static void once_init_routine(void)
 
   return ;
 }
+
+
+
+} /* gbtools namespace */
+
