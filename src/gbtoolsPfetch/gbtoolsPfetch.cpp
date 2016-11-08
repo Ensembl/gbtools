@@ -47,8 +47,6 @@ namespace gbtools
     : location_{strdup(location)},
     reader_func_{reader_func}, error_func_{error_func}, closed_func_{closed_func}, user_data_{user_data}
   {
-    opts_.full = false ;
-    opts_.debug = false ;
 
     return ;
   }

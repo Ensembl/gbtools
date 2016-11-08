@@ -237,12 +237,6 @@ namespace trackhub
 
 
 Registry::Registry()
-  : curl_object_get_(NULL),
-    curl_object_post_(NULL),
-    curl_object_delete_(NULL),
-    debug_(false),
-    proxy_(""),
-    useragent_("")
 {
   host_ = TRACKHUB_REGISTRY_HOST;
 
@@ -691,7 +685,9 @@ bool Registry::getSearchPage(stringstream &payload_ss,
             {
               string track_err_msg;
               TrackDb trackdb = searchTrackDb(item_js["id"].asString(), track_err_msg) ;
-              result.push_back(trackdb) ;
+
+              if (track_err_msg.empty())
+                result.push_back(trackdb) ;
             }
         }
     }
@@ -917,7 +913,8 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub, string &err_msg)
               string track_err_msg;
               TrackDb trackdb = searchTrackDb(trackdb_id, track_err_msg);
 
-              result.push_back(trackdb);
+              if (track_err_msg.empty())
+                result.push_back(trackdb);
             }
         }
     }

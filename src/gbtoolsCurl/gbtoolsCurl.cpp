@@ -58,14 +58,14 @@ typedef struct
 {
   CURLoption  option;
   GValue      value;
-  GParamSpec *pspec;
+  GParamSpec *pspec{NULL};
 }curl_settings_struct, *curl_settings;
 
 typedef struct
 {
-  GList   *settings_list;
-  gboolean use_multi;
-  gboolean perform_called;
+  GList   *settings_list{NULL};
+  gboolean use_multi{FALSE};
+  gboolean perform_called{FALSE};
 }curl_settings_perform_struct, *curl_settings_perform;
 
 /* object implementation functions */

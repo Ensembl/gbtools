@@ -80,7 +80,7 @@ private:
   std::string shortLabel_;
   std::string url_;
   std::string file_type_;
-  int fields_;
+  int fields_{0};
   std::string visibility_;
 };
 
@@ -89,18 +89,8 @@ private:
 class TrackDb
 {
 public:
-  TrackDb()
-    : id_(""), 
-      hub_shortLabel_(""),
-      hub_longLabel_(""),
-      hub_url_(""),
-      species_scientific_name_(""),
-      assembly_name_(""),
-      type_(""),
-      num_tracks_(0),
-      num_with_data_(0)
-  {} ;
-
+  TrackDb() {} ;
+  
   TrackDb(const std::string &id, 
           const std::string &name,
           const std::string &shortLabel,
@@ -149,8 +139,8 @@ private:
   std::string species_scientific_name_ ;
   std::string assembly_name_ ;
   std::string type_ ;
-  int num_tracks_;
-  int num_with_data_;
+  int num_tracks_{0};
+  int num_with_data_{0};
   std::list<std::string> file_types_;
   std::list<Track> tracks_;
 };
@@ -160,13 +150,6 @@ private:
 class Trackhub
 {
 public:
-  Trackhub() 
-    : name_(""), 
-      shortLabel_(""),
-      longLabel_(""),
-      url_("")
-  {} ;
-
   Trackhub(std::string name,
            std::string shortLabel,
            std::string longLabel,
@@ -264,14 +247,14 @@ private:
   std::string user_;
   std::string auth_token_;
 
-  CURLObject curl_object_get_;
-  CURLObject curl_object_post_;
-  CURLObject curl_object_delete_;
+  CURLObject curl_object_get_{NULL};
+  CURLObject curl_object_post_{NULL};
+  CURLObject curl_object_delete_{NULL};
 
   Json::Reader json_reader_;
   Json::FastWriter json_writer_;
 
-  bool debug_ ;
+  bool debug_{false} ;
   std::string proxy_ ;
   std::string cainfo_ ;
   std::string useragent_ ;
