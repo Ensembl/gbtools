@@ -232,14 +232,14 @@ public:
   void setUserAgent(const std::string &useragent);
 
 private:
-  curl_slist* getHeaders(const bool authorise);
-  curl_slist* postHeaders(const bool authorise);
+  curl_slist* getHeaders(const bool authorise = false, const std::string &userpwd = "");
+  curl_slist* postHeaders(const bool authorise = false);
 
-  std::string doGetRequest(const std::string &url, const bool authorise, long *response_code = NULL);
+  std::string doGetRequest(const std::string &url, const bool authorise, const std::string &userpwd, long *response_code = NULL);
   std::string doPostRequest(const std::string &url, const std::string &postfields, const bool authorise, long *response_code = NULL);
   std::string doDeleteRequest(const std::string &url, const bool authorise, long *response_code = NULL);
 
-  Json::Value getRequest(const std::string &request, const bool authorise, std::string &err_msg);
+  Json::Value getRequest(const std::string &request, std::string &err_msg, const bool authorise = false, const std::string &userpwd = "");
   Json::Value postRequest(const std::string &request, const std::string &postfields, const bool authorise, std::string &err_msg);
   Json::Value deleteRequest(const std::string &request, const bool authorise, std::string &err_msg);
 
