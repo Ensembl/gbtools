@@ -24,6 +24,7 @@ src/blatSrc/Makefile
 ])
 
 
+
 # Check if this is a Git repository and, if so, include info about the current
 # status in the version info. Otherwise use PACKAGE_VERSION (which will get
 # set from VERSION_NUMBER in version.m4).
@@ -90,6 +91,13 @@ AC_CHECK_PROG(GLIB_GENMARSHAL, glib-genmarshal, glib-genmarshal)
 AC_CHECK_HEADERS([curl/curl.h], [HAVE_LIBCURL=1], [HAVE_LIBCURL=0])
 AM_CONDITIONAL([USE_LIBCURL], [test "$HAVE_LIBCURL" -eq 1])
 
+
+# Check for the blatSrc library deps. Again, optional.
+AC_CHECK_HEADERS([stdio.h stdlib.h stdarg.h ctype.h sys/types.h sys/stat.h strings.h fcntl.h assert.h setjmp.h time.h math.h errno.h unistd.h libgen.h sys/wait.h mingw/math.h sys/socket.h netinet/in.h arpa/inet.h netdb.h pthread.h regex.h signal.h execinfo.h limits.h sys/mman.h syslog.h sys/time.h dirent.h sys/utsname.h sys/statvfs.h pwd.h termios.h utime.h io.h direct.h ieeefp.h sys/file.h zlib.h], [HAVE_BLATSRC_DEPS=1], [HAVE_BLATSRC_DEPS=0])
+AM_CONDITIONAL([USE_BLATSRC], [test "$HAVE_BLATSRC_DEPS" -eq 1])
+AM_COND_IF([USE_BLATSRC], [ echo 'blatSrc is available!' ])
+AM_COND_IF([USE_BLATSRC], [AC_DEFINE([USE_BLATSRC], [1], [Define to 1 if blatSrc deps are available])])
+AM_COND_IF([USE_BLATSRC], [AC_SUBST([USE_BLATSRC], [use_blatsrc])])
 
 
 
@@ -162,8 +170,11 @@ echo \
 "
 
 if test "$HAVE_LIBCURL" -eq 0; then
-echo " Warning: libcurl not found; some functionality will not be available
-"
+echo " Warning: libcurl not found; track hub and pfetch functionality will not be available"
+fi
+
+if test "$HAVE_BLATSRC_DEPS" -eq 0; then
+echo " Warning: Dependencies not found for Bed/bigBed/bigWig support"
 fi
 
 echo "-------------------------------------------------
