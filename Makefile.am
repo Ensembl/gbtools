@@ -8,14 +8,18 @@ lib_LTLIBRARIES = libgbtools.la
 
 libgbtools_la_SOURCES = 
 
-libgbtools_la_LIBADD  = \
-src/gbtoolsCurl/libgbtoolsCurl.la \
-src/gbtoolsTrackhub/libgbtoolsTrackhub.la \
-src/gbtoolsGUI/libgbtoolsGUI.la \
-src/gbtoolsPfetch/libgbtoolsPfetch.la \
-src/gbtoolsUtils/libgbtoolsUtils.la \
-src/jsoncpp/libjsoncpp.la \
-src/blatSrc/libblatSrc.la 
+libgbtools_la_LIBADD = src/gbtoolsGUI/libgbtoolsGUI.la src/gbtoolsUtils/libgbtoolsUtils.la
+
+if USE_BLATSRC
+libgbtools_la_LIBADD += src/blatSrc/libblatSrc.la
+endif
+
+libgbtools_la_LIBADD += src/jsoncpp/libjsoncpp.la
+
+if USE_LIBCURL
+libgbtools_la_LIBADD += src/gbtoolsCurl/libgbtoolsCurl.la src/gbtoolsPfetch/libgbtoolsPfetch.la
+libgbtools_la_LIBADD += src/gbtoolsTrackhub/libgbtoolsTrackhub.la
+endif
 
 libgbtools_CXXFLAGS = -std=c++0x -g -Wall
 
