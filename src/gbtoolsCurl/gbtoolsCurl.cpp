@@ -937,7 +937,7 @@ static void run_multi_perform(CURLObject curl_object)
 {
   CURLMsg *easy_msg;
   int still_runnning = 0;
-  gboolean got_handler = FALSE;
+  bool got_handler = FALSE;
   gboolean try_again = FALSE;
   int max_tries = 100;
   int count = 0;
