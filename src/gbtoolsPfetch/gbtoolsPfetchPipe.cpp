@@ -436,12 +436,11 @@ static gboolean timeout_pfetch_process(gpointer user_data)
   if (pfetch_data->watch_pid)
     {
       gchar *text = NULL ;
-      bool call_again ;
 
       text = g_strdup_printf("Process '%s' [pid=%d] timed out. Will be killed.",
                              pfetch_data->pfetch->getLocation(), pfetch_data->watch_pid) ;
 
-      call_again = pfetch_data->error_func(text, 0, NULL, pfetch_data->user_data) ;
+      pfetch_data->error_func(text, 0, NULL, pfetch_data->user_data) ; // Ignore return code.
 
       g_free(text) ;
 

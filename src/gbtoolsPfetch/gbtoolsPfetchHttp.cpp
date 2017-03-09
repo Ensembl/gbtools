@@ -162,7 +162,6 @@ namespace gbtools
           {
             char *curl_object_error = NULL;
             unsigned int error_size = 0;
-            bool result ;
             char *err_msg = NULL ;
 
             /* first get message */

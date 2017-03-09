@@ -605,7 +605,6 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
 {
   map<string, list<string>> result;
 
-  bool ok = true;
   Json::Value js = getRequest(API_INFO_ASSEMBLIES, err_msg);
 
   for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
@@ -626,7 +625,7 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
               else
                 {
                   assembly_list.clear();
-                  ok = false;
+
                   break;
                 }
             }
@@ -636,7 +635,7 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
       else
         {
           result.clear();
-          ok = false;
+
           break;
         }
     }
