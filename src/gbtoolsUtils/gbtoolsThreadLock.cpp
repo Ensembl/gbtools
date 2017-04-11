@@ -32,6 +32,8 @@
  *-------------------------------------------------------------------
  */
 
+#include <pthread.h>
+
 #include <gbtools/gbtoolsUtils.hpp>
 
 
