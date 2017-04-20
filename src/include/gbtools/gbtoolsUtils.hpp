@@ -40,8 +40,11 @@ namespace gbtools
 #define CHECK_GTK_VERSION(MAJOR, MINOR) GTK_MAJOR_VERSION > (MAJOR) || (GTK_MAJOR_VERSION == (MAJOR) && GTK_MINOR_VERSION >= (MINOR))
 
 
-const char *UtilsGetVersionString() ;
-const char *UtilsGetVersionTitle() ;
+  const char *UtilsGetVersionString() ;
+  const char *UtilsGetVersionTitle() ;
+
+  bool UtilsGlobalThreadLock(int *err_num) ;
+  bool UtilsGlobalThreadUnlock(int *err_num) ;
 
 
 } /* gbtools namespace */

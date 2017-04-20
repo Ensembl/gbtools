@@ -27,7 +27,13 @@ while (((c = *(p++)) >= '0') && (c <= '9'))
 --p;
 /* test for invalid character or empty */
 if ((c != '\0') || (p == s))
-    errAbort("invalid unsigned integer: \"%s\"", s);
+    {
+    /* try with atof in case it's in scientific notation */
+    double res_d = atof(s);
+    res = (int)res_d;
+    if (res_d - res != 0)
+        errAbort("invalid unsigned integer: \"%s\"", s);
+    }
 return res;
 }
 

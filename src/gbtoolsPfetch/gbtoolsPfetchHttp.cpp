@@ -35,8 +35,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #include <gbtools/gbtoolsPfetch.hpp>
+#include <gbtools/gbtoolsUtils.hpp>
 
 
 namespace gbtools
@@ -83,11 +85,10 @@ namespace gbtools
                          void *user_data)
     : Pfetch{location, reader_func, error_func, closed_func, user_data},
     http_port_{port},
-    cookie_jar_location_{strdup(cookie_jar)},
+    cookie_jar_location_{(cookie_jar ? strdup(cookie_jar) : NULL)},
     ipresolve_{ipresolve}, cainfo_{(cainfo ? strdup(cainfo) : NULL)}, proxy_{(proxy ? strdup(proxy) : NULL)},
     curl_object_{NULL}, request_counter_{0}
 {
-
   return ;
 }
 
@@ -129,6 +130,9 @@ namespace gbtools
 
     if((post_data = build_post_data(pfetch_data, opts_.full, location_, sequence)))
       {
+        std::string useragent = "gbtools/" ;
+        useragent += UtilsGetVersionString() ;
+
         CURLObjectSet(pfetch_data->curl_object,
                       /* general settings */
                       "debug", opts_.debug,
@@ -145,6 +149,7 @@ namespace gbtools
                       "writedata",      pfetch_data,
                       "headerfunction", http_curl_header_func,
                       "headerdata",     pfetch_data,
+                      "useragent",      useragent.c_str(),
                       /* end of options */
                       NULL) ;
 

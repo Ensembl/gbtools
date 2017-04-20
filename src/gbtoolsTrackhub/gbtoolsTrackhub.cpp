@@ -137,14 +137,29 @@ void getTracks(Json::ValueIterator &iter,
                string visibility)
 {
   Json::Value js_track = *iter;
+  int fields = 0 ;
 
   if (js_track["visibility"].isString())
-    visibility = js_track["visibility"].asString() ;
+    {
+      visibility = js_track["visibility"].asString() ;
+    }
+
+  if (js_track["standard_fields"].isString())
+    {
+      try
+        {
+          fields = stoi(js_track["standard_fields"].asString()) ;
+        }
+      catch (exception &e)
+        {
+        }
+    }
 
   Track track(js_track["track"].asString(),
               js_track["shortLabel"].asString(),
               js_track["bigDataUrl"].asString(),
               js_track["type"].asString(),
+              fields,
               visibility
               );
 
@@ -222,12 +237,6 @@ namespace trackhub
 
 
 Registry::Registry()
-  : curl_object_get_(NULL),
-    curl_object_post_(NULL),
-    curl_object_delete_(NULL),
-    debug_(false),
-    proxy_(""),
-    useragent_("")
 {
   host_ = TRACKHUB_REGISTRY_HOST;
 
@@ -324,7 +333,8 @@ void Registry::setUserAgent(const string &useragent)
 
 
 // Return the headers for GET requests
-curl_slist* Registry::getHeaders(const bool authorise)
+curl_slist* Registry::getHeaders(const bool authorise,
+                                 const string &userpwd)
 {
   curl_slist *headers = NULL;
 
@@ -349,6 +359,17 @@ curl_slist* Registry::getHeaders(const bool authorise)
         }
     }
 
+  if (!userpwd.empty())
+    {
+      char *encoded_userpwd = g_base64_encode((guchar*)(userpwd.c_str()), userpwd.length());
+      stringstream ss;
+      ss << "Authorization: Basic " << encoded_userpwd;
+
+      headers = curl_slist_append(headers, ss.str().c_str());
+
+      g_free(encoded_userpwd);
+    }
+  
   return headers;
 }
 
@@ -373,11 +394,12 @@ curl_slist* Registry::postHeaders(const bool authorise)
 // Does the work to send the given GET request using CURL
 string Registry::doGetRequest(const string &url,
                               const bool authorise,
+                              const string &userpwd,
                               long *response_code)
 {   
   string result("");
 
-  curl_slist *headers = getHeaders(authorise);
+  curl_slist *headers = getHeaders(authorise, userpwd);
 
   initCurl() ;
 
@@ -478,15 +500,16 @@ string Registry::doPostRequest(const string &url,
 
 
 Json::Value Registry::getRequest(const string &request,
+                                 string &err_msg,
                                  const bool authorise,
-                                 string &err_msg)
+                                 const string &userpwd)
 {
   Json::Value js;
   
   string url = host_ + request;
   long response_code = 0 ;
   
-  string buffer = doGetRequest(url, authorise, &response_code);
+  string buffer = doGetRequest(url, authorise, userpwd, &response_code);
   js = processRequestResult(buffer, response_code, json_reader_, err_msg) ;
 
   return js;
@@ -529,7 +552,7 @@ bool Registry::ping(string &err_msg)
 {
   bool result = false;
   
-  Json::Value js = getRequest(API_INFO_PING, false, err_msg);
+  Json::Value js = getRequest(API_INFO_PING, err_msg);
 
   if (js["ping"].isInt())
     result = js["ping"].asInt();
@@ -542,7 +565,7 @@ string Registry::version(string &err_msg)
 {
   string result("");
 
-  Json::Value js = getRequest(API_INFO_VERSION, false, err_msg);
+  Json::Value js = getRequest(API_INFO_VERSION, err_msg);
 
   if (js["release"].isString())
     result = js["release"].asString();
@@ -556,7 +579,7 @@ list<string> Registry::species(string &err_msg)
 {
   list<string> result;
 
-  Json::Value js = getRequest(API_INFO_SPECIES, false, err_msg);
+  Json::Value js = getRequest(API_INFO_SPECIES, err_msg);
 
   if (js.isArray())
     {
@@ -583,7 +606,7 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
   map<string, list<string>> result;
 
   bool ok = true;
-  Json::Value js = getRequest(API_INFO_ASSEMBLIES, false, err_msg);
+  Json::Value js = getRequest(API_INFO_ASSEMBLIES, err_msg);
 
   for (Json::ValueIterator species_iter = js.begin(); species_iter != js.end(); ++species_iter)
     {
@@ -625,7 +648,7 @@ map<string, list<string>> Registry::assemblies(string &err_msg)
 list<Trackhub> Registry::trackhubs(string &err_msg)
 {
   list<Trackhub> trackhubs;
-  Json::Value js = getRequest(API_INFO_TRACKHUBS, false, err_msg);
+  Json::Value js = getRequest(API_INFO_TRACKHUBS, err_msg);
 
   // Loop through each trackhub in the results
   for (Json::ValueIterator iter = js.begin(); iter != js.end(); ++iter)
@@ -676,7 +699,9 @@ bool Registry::getSearchPage(stringstream &payload_ss,
             {
               string track_err_msg;
               TrackDb trackdb = searchTrackDb(item_js["id"].asString(), track_err_msg) ;
-              result.push_back(trackdb) ;
+
+              if (track_err_msg.empty())
+                result.push_back(trackdb) ;
             }
         }
     }
@@ -731,7 +756,7 @@ TrackDb Registry::searchTrackDb(const string &trackdb_id, string &err_msg)
       stringstream query_ss;
       query_ss << API_SEARCH_TRACKDB << "/" << trackdb_id;
 
-      Json::Value js = getRequest(query_ss.str(), false, err_msg);
+      Json::Value js = getRequest(query_ss.str(), err_msg);
 
       // Get the lists of track info and file types
       Json::Value tracks_js = js["configuration"];
@@ -769,17 +794,8 @@ bool Registry::login(const string &user, const string &pwd, string &err_msg)
 
   initCurl() ;
 
-  CURLObjectSet(curl_object_get_,
-                "username", user.c_str(), 
-                "password", pwd.c_str(), 
-                NULL);
-
-  Json::Value js = getRequest(API_LOGIN, false, err_msg);
-
-  CURLObjectSet(curl_object_get_, 
-                "username", NULL,
-                "password", NULL,
-                NULL);
+  string userpwd = user + ":" + pwd;
+  Json::Value js = getRequest(API_LOGIN, err_msg, false, userpwd);
 
   if (js["auth_token"].isString())
     {
@@ -799,7 +815,7 @@ bool Registry::logout(string &err_msg)
   if (loggedIn())
     {
       // Do the request
-      Json::Value js = getRequest(API_LOGOUT, true, err_msg);
+      Json::Value js = getRequest(API_LOGOUT, err_msg, true);
 
       // Check return value (should be a message saying logged out ok)
       if (js["message"].isString())
@@ -877,7 +893,7 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub, string &err_msg)
     query_ss << "/" << trackhub;
 
   // Do the request
-  Json::Value js = getRequest(query_ss.str(), true, err_msg);
+  Json::Value js = getRequest(query_ss.str(), err_msg, true);
   
   // Loop through all items in the returned array
   for (Json::ValueIterator hub_iter = js.begin(); hub_iter != js.end(); ++hub_iter)
@@ -902,7 +918,8 @@ list<TrackDb> Registry::retrieveHub(const string &trackhub, string &err_msg)
               string track_err_msg;
               TrackDb trackdb = searchTrackDb(trackdb_id, track_err_msg);
 
-              result.push_back(trackdb);
+              if (track_err_msg.empty())
+                result.push_back(trackdb);
             }
         }
     }
@@ -933,7 +950,7 @@ Json::Value Registry::retrieveTrackDb(const string &trackdb, string &err_msg)
   query_ss << API_TRACKDB << "/" << trackdb;
 
   // Do the request
-  Json::Value js = getRequest(query_ss.str(), true, err_msg);
+  Json::Value js = getRequest(query_ss.str(), err_msg, true);
 
   return js;
 }

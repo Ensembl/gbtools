@@ -54,11 +54,13 @@ public:
         std::string shortLabel,
         std::string url,
         std::string file_type,
+        int fields,
         std::string visibility) 
     : name_(name),
       shortLabel_(shortLabel),
       url_(url),
       file_type_(file_type),
+      fields_(fields),
       visibility_(visibility)
   {};
 
@@ -69,6 +71,7 @@ public:
   std::string visibility() const { return visibility_; };
   bool visible() const { return visibility_ != "hide"; };
   std::string fileType() const { return file_type_; };
+  int fields() const { return fields_; };
 
   std::list<Track> children_;
 
@@ -77,6 +80,7 @@ private:
   std::string shortLabel_;
   std::string url_;
   std::string file_type_;
+  int fields_{0};
   std::string visibility_;
 };
 
@@ -85,18 +89,8 @@ private:
 class TrackDb
 {
 public:
-  TrackDb()
-    : id_(""), 
-      hub_shortLabel_(""),
-      hub_longLabel_(""),
-      hub_url_(""),
-      species_scientific_name_(""),
-      assembly_name_(""),
-      type_(""),
-      num_tracks_(0),
-      num_with_data_(0)
-  {} ;
-
+  TrackDb() {} ;
+  
   TrackDb(const std::string &id, 
           const std::string &name,
           const std::string &shortLabel,
@@ -145,8 +139,8 @@ private:
   std::string species_scientific_name_ ;
   std::string assembly_name_ ;
   std::string type_ ;
-  int num_tracks_;
-  int num_with_data_;
+  int num_tracks_{0};
+  int num_with_data_{0};
   std::list<std::string> file_types_;
   std::list<Track> tracks_;
 };
@@ -156,13 +150,6 @@ private:
 class Trackhub
 {
 public:
-  Trackhub() 
-    : name_(""), 
-      shortLabel_(""),
-      longLabel_(""),
-      url_("")
-  {} ;
-
   Trackhub(std::string name,
            std::string shortLabel,
            std::string longLabel,
@@ -245,14 +232,14 @@ public:
   void setUserAgent(const std::string &useragent);
 
 private:
-  curl_slist* getHeaders(const bool authorise);
-  curl_slist* postHeaders(const bool authorise);
+  curl_slist* getHeaders(const bool authorise = false, const std::string &userpwd = "");
+  curl_slist* postHeaders(const bool authorise = false);
 
-  std::string doGetRequest(const std::string &url, const bool authorise, long *response_code = NULL);
+  std::string doGetRequest(const std::string &url, const bool authorise, const std::string &userpwd, long *response_code = NULL);
   std::string doPostRequest(const std::string &url, const std::string &postfields, const bool authorise, long *response_code = NULL);
   std::string doDeleteRequest(const std::string &url, const bool authorise, long *response_code = NULL);
 
-  Json::Value getRequest(const std::string &request, const bool authorise, std::string &err_msg);
+  Json::Value getRequest(const std::string &request, std::string &err_msg, const bool authorise = false, const std::string &userpwd = "");
   Json::Value postRequest(const std::string &request, const std::string &postfields, const bool authorise, std::string &err_msg);
   Json::Value deleteRequest(const std::string &request, const bool authorise, std::string &err_msg);
 
@@ -260,14 +247,14 @@ private:
   std::string user_;
   std::string auth_token_;
 
-  CURLObject curl_object_get_;
-  CURLObject curl_object_post_;
-  CURLObject curl_object_delete_;
+  CURLObject curl_object_get_{NULL};
+  CURLObject curl_object_post_{NULL};
+  CURLObject curl_object_delete_{NULL};
 
   Json::Reader json_reader_;
   Json::FastWriter json_writer_;
 
-  bool debug_ ;
+  bool debug_{false} ;
   std::string proxy_ ;
   std::string cainfo_ ;
   std::string useragent_ ;

@@ -58,14 +58,14 @@ typedef struct
 {
   CURLoption  option;
   GValue      value;
-  GParamSpec *pspec;
+  GParamSpec *pspec{NULL};
 }curl_settings_struct, *curl_settings;
 
 typedef struct
 {
-  GList   *settings_list;
-  gboolean use_multi;
-  gboolean perform_called;
+  GList   *settings_list{NULL};
+  gboolean use_multi{FALSE};
+  gboolean perform_called{FALSE};
 }curl_settings_perform_struct, *curl_settings_perform;
 
 /* object implementation functions */
@@ -663,6 +663,9 @@ static void curl_object_set_property(GObject      *gobject,
 {
   CURLObject curl_object = NULL;
 
+  if (!_curl_status_ok(gobject))
+    g_warning("Bad curl status\n") ;
+
   g_return_if_fail(_curl_status_ok(gobject));
 
   curl_object = CURL_OBJECT(gobject);
@@ -704,6 +707,9 @@ static void curl_object_set_property(GObject      *gobject,
 	  char *str;
 	  str = (char *)g_value_get_string(value);
 
+	  if(curl_object->debug == 1 && str)
+	    g_message("Setting param '%d' to '%s'\n", param_id, str);
+
 	  /* Need to know whether to copy the string */
 	  if(curl_object->curl_version->version_num < 0x071700)
 	    {
@@ -715,50 +721,91 @@ static void curl_object_set_property(GObject      *gobject,
             curl_easy_setopt(curl_object->easy, (CURLoption)param_id, str);
 
 	  if(curl_object->debug == 1)
-	    g_warning("Setting param '%d' to '%s'", param_id, str);
+	    g_message("Setting param '%d' to '%s'\n", param_id, str);
 	}
       else if(G_IS_PARAM_SPEC_POINTER(pspec))
-	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_pointer(value));	
+        {
+          gpointer ptr = g_value_get_pointer(value) ;
+
+	  if(curl_object->debug == 1)
+	    g_message("Setting param '%d' to '%p'\n", param_id, ptr);
+
+          curl_object->last_easy_status =
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, ptr);	
+        }
       else if(G_IS_PARAM_SPEC_BOOLEAN(pspec))
 	{
+          gboolean val = g_value_get_boolean(value) ;
+
+	  if(curl_object->debug == 1)
+	    g_message("Setting param '%d' to '%d'\n", param_id, val);
+
 	  curl_object->last_easy_status =
-	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_boolean(value));
+	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
 	  if(param_id == CURLOPT_VERBOSE)
 	    curl_object->debug = g_value_get_boolean(value);
 	}
       else if(G_IS_PARAM_SPEC_LONG(pspec))
-	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_long(value));
+        {
+          long val = g_value_get_long(value) ;
+
+	  if(curl_object->debug == 1)
+	    g_message("Setting param '%d' to '%f'\n", param_id, (double)val);
+
+          curl_object->last_easy_status =
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
+        }
       else if(G_IS_PARAM_SPEC_UINT(pspec))
-	curl_object->last_easy_status =
-	  curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_uint(value));	
+        {
+          uint val = g_value_get_uint(value) ;
+
+	  if(curl_object->debug == 1)
+	    g_message("Setting param '%d' to '%d'\n", param_id, val);
+
+          curl_object->last_easy_status =
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);	
+        }
       else
-	g_warning("Param id '%d' has unexpected ParamSpec.", param_id);
+        {
+          g_warning("Param id '%d' has unexpected ParamSpec.", param_id);
+        }
       break;
     case CURLOPT_POSTFIELDS:
       if(G_IS_PARAM_SPEC_POINTER(pspec))
 	{
+          gpointer val = g_value_get_pointer(value) ;
+
+	  if(curl_object->debug == 1)
+	    g_message("Setting param '%d' to '%p'\n", param_id, val);
+
 	  curl_object->last_easy_status =
-	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, g_value_get_pointer(value));
+	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
 	  curl_object->post_data_2_free = g_value_get_pointer(value);
 	}
       else
-	g_warning("Param id '%d' has unexpected ParamSpec.", param_id);
+        {
+          g_warning("Param id '%d' has unexpected ParamSpec.\n", param_id);
+        }
       break;
     case CURLOBJECT_MANAGE_POSTFIELDS:
-      curl_object->manage_post_data = g_value_get_boolean(value);
+      {
+        curl_object->manage_post_data = g_value_get_boolean(value);
+      }
       break;
     case CURLOBJECT_ALLOW_QUEUES:
-      curl_object->allow_queue = g_value_get_boolean(value);
+      {
+        curl_object->allow_queue = g_value_get_boolean(value);
+      }
       break;
     default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, param_id, pspec);
+      {
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, param_id, pspec);
+      }
       break;
     }
 
   if(curl_object->last_easy_status != CURLE_OK)
-    g_warning("Setting property '%s' failed. (curl_easy_setopt code %d)", 
+    g_warning("Setting property '%s' failed. (curl_easy_setopt code %d)\n", 
 	      pspec->name, curl_object->last_easy_status);
 
   return ;

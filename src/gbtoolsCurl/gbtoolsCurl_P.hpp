@@ -53,38 +53,38 @@ typedef struct _curlObjectStruct
 {
   GObject __parent__;
 
-  CURL  *easy;
-  CURLM *multi;
+  CURL  *easy{NULL};
+  CURLM *multi{NULL};
   
-  CURLcode  last_easy_status;
-  CURLMcode last_multi_status;
+  CURLcode  last_easy_status{CURLE_OK};
+  CURLMcode last_multi_status{CURLM_OK};
 
-  GQueue *perform_queue;
+  GQueue *perform_queue{NULL};
 
-  gpointer settings_to_destroy;
-  gpointer post_data_2_free;
+  gpointer settings_to_destroy{NULL};
+  gpointer post_data_2_free{NULL};
 
-  char error_message[CURL_ERROR_SIZE];
+  char error_message[CURL_ERROR_SIZE]{};
 
-  curl_version_info_data *curl_version;
+  curl_version_info_data *curl_version{NULL};
 
-  GList *pre717strings;
+  GList *pre717strings{NULL};
 
-  unsigned int allow_queue : 1;
-  unsigned int transfer_in_progress : 1;
-  unsigned int manage_post_data : 1;
-  unsigned int debug : 1;
+  bool allow_queue{false};
+  bool transfer_in_progress{false};
+  bool manage_post_data{false};
+  bool debug{false};
 } curlObjectStruct;
 
 typedef struct _curlObjectClassStruct
 {
   GObjectClass parent_class;
 
-  CURLcode  global_init;
+  CURLcode  global_init{CURLE_OK};
 
-  void (* connection_closed)(CURLObject object);
+  void (* connection_closed)(CURLObject object){NULL};
 
-  guint signals[LAST_SIGNAL];
+  guint signals[LAST_SIGNAL]{};
 
 } curlObjectClassStruct;
 

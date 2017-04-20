@@ -71,19 +71,19 @@ namespace gbtools
            ReaderFunc reader_func, ErrorFunc error_func, ClosedFunc closed_func,
            void *user_data) ;
 
-    const char *location_ ;
+    const char *location_{NULL} ;
 
     struct
     {
-      unsigned int full    : 1 ;	/* full pfetch entry (-F on command line) */
-      unsigned int debug   : 1 ;	/* internal debug */
+      bool full{false} ;	/* full pfetch entry (-F on command line) */
+      bool debug{false} ;	/* internal debug */
     } opts_ ;
 
     // user callbacks
-    ReaderFunc reader_func_ ;
-    ErrorFunc error_func_ ;
-    ClosedFunc closed_func_ ;
-    void *user_data_ ;
+    ReaderFunc reader_func_{NULL} ;
+    ErrorFunc error_func_{NULL} ;
+    ClosedFunc closed_func_{NULL} ;
+    void *user_data_{NULL} ;
 
   private:
 
@@ -153,14 +153,14 @@ namespace gbtools
 
   private:
 
-    unsigned int http_port_;
-    const char *cookie_jar_location_;
-    long ipresolve_;
-    const char *cainfo_;
-    const  char *proxy_ ;
+    unsigned int http_port_{0};
+    const char *cookie_jar_location_{NULL};
+    long ipresolve_{0};
+    const char *cainfo_{NULL};
+    const  char *proxy_{NULL} ;
 
-    CURLObject curl_object_;
-    unsigned int request_counter_;
+    CURLObject curl_object_{NULL};
+    unsigned int request_counter_{0};
 
   } ;
 
