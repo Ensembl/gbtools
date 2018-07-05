@@ -1,3 +1,5 @@
+
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -11,24 +13,24 @@
 #include "nt4.h"
 #endif
 
-int xenAlignSmall(DNA *query, int querySize, DNA *target, int targetSize, 
+int xenAlignSmall(DNA *query, int querySize, DNA *target, int targetSize,
     FILE *f, boolean printExtraAtEnds);
-/* Use dynamic programming to do small scale 
+/* Use dynamic programming to do small scale
  * (querySize * targetSize < 10,000,000)
  * alignment of DNA. Write results into f.*/
 
-void xenStitch(char *inName, FILE *out, int stitchMinScore, 
+void xenStitch(char *inName, FILE *out, int stitchMinScore,
     boolean compactOutput);
 /* Do the big old stitching run putting together contents of inName
  * into contigs in out.  Create output in newer format. */
 
-void xenStitcher(char *inName, FILE *out, int stitchMinScore, boolean 
+void xenStitcher(char *inName, FILE *out, int stitchMinScore, boolean
     compactOutput);
 /* Do the big old stitching run putting together contents of inName
  * into contigs in out. Create output in older format. */
 
 void xenAlignBig(DNA *query, int qSize, DNA *target, int tSize, FILE *f, boolean forHtml);
-/* Do a big alignment - one that has to be stitched together. 
+/* Do a big alignment - one that has to be stitched together.
  * Write results into f. */
 
 void xenShowAli(char *qSym, char *tSym, char *hSym, int symCount, FILE *f,

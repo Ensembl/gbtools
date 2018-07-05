@@ -71,7 +71,7 @@ void cgiDictionaryFreeList(struct cgiDictionary **pList);
 /* Free up a whole list of cgiDictionaries */
 
 struct cgiDictionary *cgiDictionaryFromEncodedString(char *encodedString);
-/* Giving a this=that&this=that string,  return cgiDictionary parsed out from it. 
+/* Giving a this=that&this=that string,  return cgiDictionary parsed out from it.
  * This does *not* destroy input like the lower level cgiParse functions do. */
 
 char *findCookieData(char *varName);
@@ -139,7 +139,7 @@ enum osType
     osOther=4    // Anything else
     };
 
-enum browserType cgiClientBrowser(char **browserQualifier, enum osType *clientOs, 
+enum browserType cgiClientBrowser(char **browserQualifier, enum osType *clientOs,
                                   char **clientOsQualifier);
 /* These routines abort the html output if the input isn't
  * there or is misformatted. */
@@ -286,7 +286,7 @@ void cgiMakeCheckBoxJS(char *name, boolean checked, char *javascript);
 void cgiMakeCheckBoxIdAndJS(char *name, boolean checked, char *id, char *javascript);
 /* Make check box with ID and javascript. */
 
-void cgiMakeCheckBoxFourWay(char *name, boolean checked, boolean enabled, char *id, 
+void cgiMakeCheckBoxFourWay(char *name, boolean checked, boolean enabled, char *id,
                             char *classes, char *moreHtml);
 /* Make check box - with fourWay functionality (checked/unchecked by enabled/disabled
  * Also makes a shadow hidden variable that supports the 2 boolean states. */
@@ -315,12 +315,12 @@ void cgiMakeIntVar(char *varName, int initialVal, int maxDigits);
 /* Make a text control filled with initial integer value.  */
 
 #define NO_VALUE            -96669
-void cgiMakeIntVarInRange(char *varName, int initialVal, char *title, int width, 
+void cgiMakeIntVarInRange(char *varName, int initialVal, char *title, int width,
                           char *min, char *max);
 /* Make a integer control filled with initial value.
    If min and/or max are non-NULL will enforce range
    Requires utils.js jQuery.js and inputBox class */
-void cgiMakeIntVarWithLimits(char *varName, int initialVal, char *title, int width, 
+void cgiMakeIntVarWithLimits(char *varName, int initialVal, char *title, int width,
                              int min, int max);
 void cgiMakeIntVarWithMin(char *varName, int initialVal, char *title, int width, int min);
 void cgiMakeIntVarWithMax(char *varName, int initialVal, char *title, int width, int max);
@@ -331,12 +331,12 @@ void cgiMakeIntVarWithMax(char *varName, int initialVal, char *title, int width,
 void cgiMakeDoubleVar(char *varName, double initialVal, int maxDigits);
 /* Make a text control filled with initial floating-point value.  */
 
-void cgiMakeDoubleVarInRange(char *varName, double initialVal, char *title, int width, 
+void cgiMakeDoubleVarInRange(char *varName, double initialVal, char *title, int width,
                              char *min, char *max);
 /* Make a floating point control filled with initial value.
    If min and/or max are non-NULL will enforce range
    Requires utils.js jQuery.js and inputBox class */
-void cgiMakeDoubleVarWithLimits(char *varName, double initialVal, char *title, int width, 
+void cgiMakeDoubleVarWithLimits(char *varName, double initialVal, char *title, int width,
                                 double min, double max);
 void cgiMakeDoubleVarWithMin(char *varName, double initialVal, char *title, int width, double min);
 void cgiMakeDoubleVarWithMax(char *varName, double initialVal, char *title, int width, double max);

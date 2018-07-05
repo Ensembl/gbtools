@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -13,18 +14,18 @@
 
 #ifndef DNASEQ_H
 #include "dnaseq.h"
-#endif 
+#endif
 
 #ifndef NT4_H
 #include "nt4.h"
-#endif 
+#endif
 
 #ifndef GDF_H
 #include "gdf.h"
 #endif
 
 
-struct wormCdnaInfo 
+struct wormCdnaInfo
 /* Extra info stored in cDNA database other than string. */
     {
     char *motherString;         /* Holds memory for other strings. */
@@ -206,7 +207,7 @@ struct cdaAli *wormCdaAlisInRange(char *chromId, int start, int end);
 /* Return list of cdna alignments that overlap range. */
 
 FILE *wormOpenGoodAli();
-/* Opens good alignment file and reads signature. 
+/* Opens good alignment file and reads signature.
  * (You can then cdaLoadOne() it.) */
 
 struct wormGdfCache
@@ -231,7 +232,7 @@ struct gdfGene *wormGetGdfGeneList(char *baseName, int baseNameSize);
 struct gdfGene *wormGetSomeGdfGeneList(char *baseName, int baseNameSize, struct wormGdfCache *cache);
 /* Get all gdfGenes that start with a given name. */
 
-struct gdfGene *wormGdfGenesInRange(char *chrom, int start, int end, 
+struct gdfGene *wormGdfGenesInRange(char *chrom, int start, int end,
     struct wormGdfCache *geneFinder);
 /* Get list of genes in range according to given gene finder. */
 
@@ -242,4 +243,3 @@ void wormUncacheSomeGdf(struct wormGdfCache *cache);
 /* Uncache some gene prediction set. */
 
 #endif /* WORMDNA_H */
-

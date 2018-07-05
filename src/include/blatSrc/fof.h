@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -18,7 +19,7 @@ struct fofPos
 
 
 struct fof *fofOpen(char *fofName, char *fofDir);
-/* Open up the named fof. fofDir may be NULL.  It should include 
+/* Open up the named fof. fofDir may be NULL.  It should include
  * trailing '/' if non-null. */
 
 void fofClose(struct fof **pFof);
@@ -27,9 +28,9 @@ void fofClose(struct fof **pFof);
 int fofElementCount(struct fof *fof);
 /* How many names are in fof file? */
 
-void fofMake(char *inFiles[], int inCount, char *outName, 
+void fofMake(char *inFiles[], int inCount, char *outName,
     boolean (*readHeader)(FILE *inFile, void *data),
-    boolean (*nextRecord)(FILE *inFile, void *data, char **rName, int *rNameLen), 
+    boolean (*nextRecord)(FILE *inFile, void *data, char **rName, int *rNameLen),
     void *data, boolean dupeOk);
 /* Make an index file
  * Inputs:
@@ -40,12 +41,12 @@ void fofMake(char *inFiles[], int inCount, char *outName,
  *     nextRecord - function that reads next record in file you're indexing
  *                  and returns the name of that record.  Returns FALSE at
  *                  end of file.  Can set *rNameLen to zero you want indexer
- *                  to ignore the record. 
+ *                  to ignore the record.
  *     data - void pointer passed through to nextRecord.
  *     dupeOk - set to TRUE if you want dupes to not cause squawking
  */
 
-boolean fofFindFirst(struct fof *fof, char *prefix, 
+boolean fofFindFirst(struct fof *fof, char *prefix,
     int prefixSize, struct fofPos *retPos);
 /* Find first element with key starting with prefix. */
 
@@ -60,7 +61,7 @@ void *fofFetch(struct fof *fof, char *name, int *retSize);
 
 char *fofFetchString(struct fof *fof, char *name, int *retSize);
 /* Lookup element in index, allocate memory for it, read it.
- * Returns zero terminated string with element in it, which 
+ * Returns zero terminated string with element in it, which
  * should be freeMem'd when done. Aborts if element isn't there. */
 
 struct fofBatch
@@ -76,7 +77,6 @@ struct fofBatch
     bits32 offset;          /* Offset in file - filled in by server. */
     bits32 size;            /* Size in file - filled in by server. */
     };
- 
+
 struct fofBatch *fofBatchFind(struct fof *fof, struct fofBatch *list);
 /* Look up all of members on list. */
-
