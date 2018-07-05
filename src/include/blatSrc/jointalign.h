@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2002 Ryan Weber.  This source code may be freely used       *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -8,7 +9,7 @@
 #ifndef JOINTALIGN_H
 #define JOINTALIGN_H
 
-void htmlPrintJointAlignment( char *seq1, char *seq2, int columnNum, 
+void htmlPrintJointAlignment( char *seq1, char *seq2, int columnNum,
         int start, int end, char *strand );
 /* Print sequences 1 and 2 (assumed to be a joint alignment),
  * formatted for html output. Coordinates are printed based on
@@ -27,4 +28,3 @@ void htmlPrintJointAlignmentLine( char *seq1, char *seq2, int start, int end);
 
 
 #endif /* JOINTALIGN */
-

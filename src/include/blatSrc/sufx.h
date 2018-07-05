@@ -1,5 +1,6 @@
-/* sufx - suffix array with traversal extension for genome.  Use sufxMake utility to 
- * create one of these files , and the routines here to access it.  See comment by 
+
+/* sufx - suffix array with traversal extension for genome.  Use sufxMake utility to
+ * create one of these files , and the routines here to access it.  See comment by
  * sufxFileHeader for file format. See src/shortReads/sufxMake/sufx.doc as well for
  * an explanation of the data structures, particularly the traverse array. */
 /* This file is copyright 2008 Jim Kent, but license is hereby
@@ -11,7 +12,7 @@
 struct sufxFileHeader
 /* Short read index file binary file header.  A sufx file starts with this fixed 128 byte
  * structure.  It is followed by the following sections:
- *    chromosome name strings - zero terminated.  Padded with zero to 4 byte boundary 
+ *    chromosome name strings - zero terminated.  Padded with zero to 4 byte boundary
  *    chromosome sizes (32 bits each)
  *    chromosome DNA - one byte per base lower case.  A zero between each chrom, and a zero before
  *                     and after (to make some end conditions easier).  Padded if need be with
@@ -31,7 +32,7 @@ struct sufxFileHeader
     bits64 reserved[11];/* All zeroes for now. */
     };
 
-struct sufx 
+struct sufx
 /* Suffix array in memory */
     {
     struct sufx *next;
@@ -58,7 +59,7 @@ int sufxOffsetToChromIx(struct sufx *sufx, bits32 tOffset);
 
 /** Stuff to define SUFX files **/
 #define SUFX_MAGIC 0x600BA3A1	/* Magic number at start of SUFX file */
-#define SUFX_MAJOR_VERSION 0	
+#define SUFX_MAJOR_VERSION 0
 #define SUFX_MINOR_VERSION 0
 
 #endif /* SUFX_H */

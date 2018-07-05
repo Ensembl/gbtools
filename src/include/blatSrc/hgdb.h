@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -27,7 +28,7 @@ struct dnaSeq *hgdbFinishedSeq(char *accession);
 /* Return finished BAC sequence. */
 
 struct dnaSeq *hgdbUnfinishedSeq(char *accession);
-/* Return unfinished BAC sequence. May be in 
+/* Return unfinished BAC sequence. May be in
  * several contigs (dnaSeq returned may be a list.) */
 
 struct dnaSeq *hgdbGetSeq(char *accession);
@@ -43,4 +44,3 @@ boolean hgdbSmallKey(char *accession, char *key, char *valBuf, int valBufSize);
 /* Get value of small key.  Returns FALSE if key doesn't exist. */
 
 #endif /* HGDB_H */
-

@@ -1,5 +1,7 @@
+
+
 /* pairHmm - stuff to help implement pairwise hidden markov models,
- * which are useful ways of aligning two sequences. 
+ * which are useful ways of aligning two sequences.
  *
  * This file is copyright 2000-2004 Jim Kent, but license is hereby
  * granted for all use - public, private or commercial. */
@@ -10,7 +12,7 @@
 /* Mommy coding scheme - this is how one cell in the dynamic programming table
  * points to it's parent (mommy) cell.  Since these tables are really big,
  * rather than use a simple pointer costing four bytes, we use a encoding
- * scheme that requires only one byte. 
+ * scheme that requires only one byte.
  *
  * Bits 0-4  the "hidden" state of the mommy.  Lets us have 32 hidden states.
  *           currently only using 7.
@@ -74,7 +76,7 @@ void phmmMatrixFree(struct phmmMatrix **pAm);
 /* Free up memory required for an phmmMatrix and make sure
  * nobody reuses it. */
 
-struct phmmState *phmmNameState(struct phmmMatrix *am, int stateIx, 
+struct phmmState *phmmNameState(struct phmmMatrix *am, int stateIx,
 	char *name, char emitLetter);
 /* Give a name to a state and return a pointer to it. */
 
@@ -82,13 +84,12 @@ struct phmmAliPair *phmmTraceBack(struct phmmMatrix *am, struct phmmMommy *end);
 /* Create list of alignment pair by tracing back through matrix from end
  * state back to a start.*/
 
-void phmmPrintTrace(struct phmmMatrix *am, struct phmmAliPair *pairList, 
+void phmmPrintTrace(struct phmmMatrix *am, struct phmmAliPair *pairList,
 	boolean showStates, FILE *f, boolean extraAtEnds);
 /* Print out trace to file. */
 
-struct axt *phhmTraceToAxt(struct phmmMatrix *am, struct phmmAliPair *pairList, 
+struct axt *phhmTraceToAxt(struct phmmMatrix *am, struct phmmAliPair *pairList,
 	int score, char *qName, char *tName);
 /* Convert alignment from traceback format to axt. */
 
 #endif /* PAIRHMM_H */
-

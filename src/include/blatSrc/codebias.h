@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -13,7 +14,7 @@
 
 
 struct codonBias
-/* Tendency of codons to occur in a particular region. 
+/* Tendency of codons to occur in a particular region.
  * Tables are in scaled log probability format. */
     {
     int mark0[64];
@@ -21,13 +22,12 @@ struct codonBias
     };
 
 struct codonBias *codonLoadBias(char *fileName);
-/* Create scaled log codon bias tables based on .cod file.  
+/* Create scaled log codon bias tables based on .cod file.
  * You can freeMem it when you're done. */
 
  int codonFindFrame(DNA *dna, int dnaSize, struct codonBias *forBias);
-/* Assuming a stretch of DNA is an exon, find most likely frame that it's in. 
+/* Assuming a stretch of DNA is an exon, find most likely frame that it's in.
  * Beware this routine will replace N's with T's in the input dna.*/
 
 
 #endif /* CODEBIAS_H */
-

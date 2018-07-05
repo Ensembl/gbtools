@@ -1,9 +1,10 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
  * permitted only by explicit agreement with Jim Kent (jim_kent@pacbell.net) *
  *****************************************************************************/
-/* patSpace - a homology finding algorithm that occurs mostly in 
+/* patSpace - a homology finding algorithm that occurs mostly in
  * pattern space (as opposed to offset space). */
 
 #ifndef PATSPACE_H
@@ -19,7 +20,7 @@ struct patSpace *makePatSpace(
     int seedSize,	            /* Alignment seed size - 10 or 11. Must match oocFileName */
     char *oocFileName,              /* File with tiles to filter out, may be NULL. */
     int minMatch,                   /* Minimum # of matching tiles.  4 is good. */
-    int maxGap                      /* Maximum gap size - 32k is good for 
+    int maxGap                      /* Maximum gap size - 32k is good for
                                        cDNA (introns), 500 is good for DNA assembly. */
     );
 /* Allocate a pattern space and fill from sequences.  (Each element of
@@ -45,4 +46,3 @@ struct patClump *patSpaceFindOne(struct patSpace *ps, DNA *dna, int dnaSize);
 
 
 #endif /* PATSPACE_H */
-

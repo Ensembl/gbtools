@@ -1,3 +1,4 @@
+
 /* Htmshell.h - stuff to make it easier to generate HTML files on
  * the fly.  Typically included with cheapcgi.h in almost any
  * CGI program.
@@ -67,7 +68,7 @@ void htmStart(FILE *f, char *title);
 /* Write the start of a stand alone .html file. */
 
 void printBodyTag(FILE *f);
-// print starting BODY tag, including any appropriate attributes (class, background and bgcolor). 
+// print starting BODY tag, including any appropriate attributes (class, background and bgcolor).
 
 void htmStartWithHead(FILE *f, char *head, char *title);
 /* Write the start of a stand alone .html file, plus head info */

@@ -1,3 +1,4 @@
+
 /* Stuff to parse .ra files. Ra files are simple text databases.
  * The database is broken into records by blank lines.
  * Each field takes a line.  The name of the field is the first
@@ -78,4 +79,3 @@ struct hash *raTagVals(char *fileName, char *tag);
 /* Return a hash of all values of given tag seen in any stanza of ra file. */
 
 #endif /* RA_H */
-

@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -60,14 +61,13 @@ void ssBundleFreeList(struct ssBundle **pList);
 /* Free up list of ssBundles */
 
 
-void ssStitch(struct ssBundle *bundle, enum ffStringency stringency, 
+void ssStitch(struct ssBundle *bundle, enum ffStringency stringency,
 	int minScore, int maxToReturn);
-/* Glue together mrnas in bundle as much as possible. 
+/* Glue together mrnas in bundle as much as possible.
  * Updates bundle->ffList with stitched together version. */
 
-struct ssBundle *ssFindBundles(struct patSpace *ps, struct dnaSeq *cSeq, 
+struct ssBundle *ssFindBundles(struct patSpace *ps, struct dnaSeq *cSeq,
 	char *cName, enum ffStringency stringency, boolean avoidSelfSelf);
 /* Find patSpace alignments on cSeq and bundle them together. */
 
 #endif /* SUPSTITCH_H */
-
