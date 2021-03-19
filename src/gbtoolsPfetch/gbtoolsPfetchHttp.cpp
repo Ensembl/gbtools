@@ -157,10 +157,6 @@ namespace gbtools
       
         pfetch_data->request_counter++ ;
 
-        // stefano
-        g_warning("ste-DEBUG: About to call CURLObjectPerform\n") ;
-        g_warning("ste-DEBUG: CURLObjectPerform-location: >%s<\n", _location) ;
-
         if (CURLObjectPerform(pfetch_data->curl_object, TRUE) == CURL_STATUS_FAILED)
           {
             char *curl_object_error = NULL;
