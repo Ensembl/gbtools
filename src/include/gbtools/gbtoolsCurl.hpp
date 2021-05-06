@@ -49,8 +49,8 @@ namespace gbtools
 
 typedef enum
   {
-    CURL_STATUS_OK,
-    CURL_STATUS_FAILED
+    CURL_STATUS_OK = 0,
+    CURL_STATUS_FAILED = 1
   } CURLObjectStatus;
 
 

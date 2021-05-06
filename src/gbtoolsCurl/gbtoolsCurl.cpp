@@ -16,13 +16,13 @@
  *-------------------------------------------------------------------
  * This file is part of the ZMap genome database package
  * originally written by:
- * 
+ *
  *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
  *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
  *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
  *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
- *  
+ *
  * Description: Object to access curl send/receive http requests.
  *
  *-------------------------------------------------------------------
@@ -76,27 +76,27 @@ static void curl_object_class_finalize(CURLObjectClass curlobj_class);
 static void curl_object_init(CURLObject curl_object);
 static void curl_object_dispose(GObject *gobject);
 static void curl_object_finalize(GObject *gobject);
-static void curl_object_set_property(GObject *gobject, 
-				  guint param_id, 
-				  const GValue *value, 
+static void curl_object_set_property(GObject *gobject,
+				  guint param_id,
+				  const GValue *value,
 				  GParamSpec *pspec);
-static void curl_object_get_property(GObject *gobject, 
-				  guint param_id, 
-				  GValue *value, 
+static void curl_object_get_property(GObject *gobject,
+				  guint param_id,
+				  GValue *value,
 				  GParamSpec *pspec);
 
 /* internal functions */
 static gboolean _curl_status_ok(GObject *object);
-static gboolean curl_fd_to_watched_GIOChannel(gint         fd, 
-					      GIOCondition cond, 
-					      GIOFunc      func, 
+static gboolean curl_fd_to_watched_GIOChannel(gint         fd,
+					      GIOCondition cond,
+					      GIOFunc      func,
 					      gpointer     data);
-static gboolean curl_object_watch_func(GIOChannel  *source, 
-				   GIOCondition condition, 
+static gboolean curl_object_watch_func(GIOChannel  *source,
+				   GIOCondition condition,
 				   gpointer     user_data);
 static void run_multi_perform(CURLObject curl_object);
 static CURLObjectStatus perform_later(CURLObject curl_object, gboolean use_multi);
-static void save_settings(CURLObject    curl_object, 
+static void save_settings(CURLObject    curl_object,
 			  guint         param_id,
 			  const GValue *value,
 			  GParamSpec   *pspec);
@@ -129,7 +129,7 @@ static int curl_object_progress_func(void  *clientp,
  *
  * What people do currently when using GObject in threaded applications
  * is to call g_type_class_ref (MY_TYPE_WHATEVER) for all their types
- * before creating the first thread. 
+ * before creating the first thread.
  */
 
 /* public functions */
@@ -144,7 +144,7 @@ GType CURLObjectGetType(void)
 
   if(!curl_object_type)
     {
-      GTypeInfo curl_info = 
+      GTypeInfo curl_info =
 	{
 	  sizeof(curlObjectClass),
 	  (GBaseInitFunc)     NULL,
@@ -158,7 +158,7 @@ GType CURLObjectGetType(void)
 	};
 
       curl_object_type = g_type_register_static(G_TYPE_OBJECT,
-						"cURL-wrapper-object", 
+						"cURL-wrapper-object",
 						&curl_info, (GTypeFlags)0);
     }
 
@@ -166,7 +166,7 @@ GType CURLObjectGetType(void)
 }
 
 /*!
- * Get a new CURLObject 
+ * Get a new CURLObject
  */
 CURLObject CURLObjectNew()
 {
@@ -189,10 +189,10 @@ CURLObjectStatus CURLObjectSet(CURLObject curl_object, const gchar *first_arg_na
   g_object_set_valist(G_OBJECT(curl_object), first_arg_name, args);
   va_end(args);
 
-  if (curl_object->last_easy_status == CURLE_OK)
+ // if (curl_object->last_easy_status == CURLE_OK)
     result = CURL_STATUS_OK;
-  else
-    result = CURL_STATUS_FAILED;
+ // else
+ //   result = CURL_STATUS_FAILED;
 
   return result;
 }
@@ -202,47 +202,16 @@ CURLObjectStatus CURLObjectSet(CURLObject curl_object, const gchar *first_arg_na
  */
 CURLObjectStatus CURLObjectPerform(CURLObject curl_object, gboolean use_multi)
 {
+
   CURLObjectStatus status = CURL_STATUS_FAILED;
 
   if(_curl_status_ok(G_OBJECT(curl_object)))
     {
-      if(use_multi)
-	{
-#ifdef PROGRESS_INTERNAL
-	  curl_easy_setopt(curl_object->easy, CURLOPT_PROGRESSFUNCTION, curl_object_progress_func);
 
-	  curl_easy_setopt(curl_object->easy, CURLOPT_PROGRESSDATA, curl_object);
-#endif /* PROGRESS_INTERNAL */
-
-	  if(curl_object->transfer_in_progress)
-	    {
-	      if(curl_object->allow_queue)
-		status = perform_later(curl_object, use_multi);
-	      else
-		status = (CURLObjectStatus)101; 	/* NO QUEUES and TRANSFER IN PROGRESS. */
-	    }
-	  else if(!g_queue_is_empty(curl_object->perform_queue))
-	    {
-	      status = perform_later(curl_object, use_multi);
-	      perform_next(curl_object);
-	    }
-	  else
-	    {
-	      curl_object->last_multi_status = curl_multi_add_handle(curl_object->multi, 
-								     curl_object->easy);
-	      
-	      run_multi_perform(curl_object);
-	      
-	      if(curl_object->last_easy_status == CURLE_OK)
-		status = CURL_STATUS_OK;
-	    }
-	}
-      else
-	{
-	  if((curl_object->last_easy_status = curl_easy_perform(curl_object->easy)) == CURLE_OK)
-	    status = CURL_STATUS_OK;
-	}
+      curl_object->last_easy_status = curl_easy_perform(curl_object->easy);
+      status = CURL_STATUS_OK;
     }
+
 
   return status;
 }
@@ -281,7 +250,7 @@ CURLObject CURLObjectDestroy(CURLObject curl_object)
 static void curl_object_class_init(CURLObjectClass curl_object_class)
 {
   GObjectClass *gobject_class;
-  
+
   gobject_class = (GObjectClass *)curl_object_class;
 
   gobject_class->set_property = curl_object_set_property;
@@ -320,7 +289,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 						       "User data passed to readfunction",
 						       (GParamFlags)CURL_PARAM_STATIC_WO));
 
-  /* CURLOPT_IOCTLFUNCTION, CURLOPT_IOCTLDATA, 
+  /* CURLOPT_IOCTLFUNCTION, CURLOPT_IOCTLDATA,
    * CURLOPT_SEEKFUNCTION, CURLOPT_SEEKDATA,
    * CURLOPT_SOCKOPTFUNCTION, CURLOPT_SOCKOPTDATA,
    * CURLOPT_OPENSOCKETFUNCTION, CURLOPT_OPENSOCKETDATA
@@ -417,7 +386,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_POSTFIELDSIZE,
 				  g_param_spec_uint("postfieldsize", "postfieldsize",
-						    "Size of the POSTFIELDS", 
+						    "Size of the POSTFIELDS",
 						    0, 65535, 0,
 						    (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_HTTPPOST,
@@ -425,8 +394,8 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 						       "List of curl_httppost structs",
 						       (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_REFERER,
-				  g_param_spec_string("referer", "referer", 
-						      "Referer: string", 
+				  g_param_spec_string("referer", "referer",
+						      "Referer: string",
 						      "", (GParamFlags)CURL_PARAM_STATIC_WO));
   g_object_class_install_property(gobject_class, CURLOPT_USERAGENT,
 				  g_param_spec_string("useragent", "useragent",
@@ -472,7 +441,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 						       "Force easy handle to use GET request",
 						       TRUE, (GParamFlags)CURL_PARAM_STATIC_WO));
   /* --- FTP options --- */
-  
+
   /* --- Protocol options --- */
   g_object_class_install_property(gobject_class, CURLOPT_IPRESOLVE,
 				  g_param_spec_long("ipresolve", "ipresolve",
@@ -523,7 +492,7 @@ static void curl_object_class_init(CURLObjectClass curl_object_class)
 
   /* Signals */
   curl_object_class->signals[CONNECTION_CLOSED_SIGNAL] =
-    g_signal_new("connection_closed", 
+    g_signal_new("connection_closed",
 		 G_TYPE_FROM_CLASS(curl_object_class),
 		 G_SIGNAL_RUN_LAST,
 		 G_STRUCT_OFFSET(curlObjectClass, connection_closed), /* class closure */
@@ -568,11 +537,11 @@ static void curl_object_init(CURLObject curl_object)
 	curl_object->last_easy_status  = CURLE_OK;
       if((curl_object->multi = curl_multi_init()))
 	curl_object->last_multi_status = CURLM_OK;
-      /* We don't add the easy handle here, 
+      /* We don't add the easy handle here,
        * but do it dynamically later. */
 
       curl_easy_setopt(curl_object->easy, CURLOPT_NOPROGRESS, TRUE);
-      
+
       //curl_easy_setopt(curl_object->easy, CURLOPT_NOSIGNAL, TRUE);
 
       curl_easy_setopt(curl_object->easy, CURLOPT_ERRORBUFFER, &(curl_object->error_message[0]));
@@ -615,16 +584,16 @@ static void curl_object_finalize(GObject *gobject)
       curl_easy_cleanup(curl_object->easy);
       curl_object->easy  = NULL;
     }
-  
+
   if((curl_object->curl_version) &&
      (curl_object->curl_version->version_num < 0x071700))
     g_list_foreach(curl_object->pre717strings, free_pre717_strings, NULL);
-  
+
   if((curl_object->perform_queue) &&
      (!g_queue_is_empty(curl_object->perform_queue)))
     {
-      g_queue_foreach(curl_object->perform_queue, 
-		      invoke_destroy_settings_perform, 
+      g_queue_foreach(curl_object->perform_queue,
+		      invoke_destroy_settings_perform,
 		      NULL);
     }
 
@@ -656,9 +625,9 @@ static void curl_object_finalize(GObject *gobject)
   return ;
 }
 
-static void curl_object_set_property(GObject      *gobject, 
-				     guint         param_id, 
-				     const GValue *value, 
+static void curl_object_set_property(GObject      *gobject,
+				     guint         param_id,
+				     const GValue *value,
 				     GParamSpec   *pspec)
 {
   CURLObject curl_object = NULL;
@@ -708,7 +677,7 @@ static void curl_object_set_property(GObject      *gobject,
 	  str = (char *)g_value_get_string(value);
 
 	  if(curl_object->debug == 1 && str)
-	    g_message("Setting param '%d' to '%s'\n", param_id, str);
+	    g_message("Setting param M1 '%d' to '%s'\n", param_id, str);
 
 	  /* Need to know whether to copy the string */
 	  if(curl_object->curl_version->version_num < 0x071700)
@@ -721,24 +690,24 @@ static void curl_object_set_property(GObject      *gobject,
             curl_easy_setopt(curl_object->easy, (CURLoption)param_id, str);
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%s'\n", param_id, str);
+	    g_message("Setting param M2 '%d' to '%s'\n", param_id, str);
 	}
       else if(G_IS_PARAM_SPEC_POINTER(pspec))
         {
           gpointer ptr = g_value_get_pointer(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%p'\n", param_id, ptr);
+	    g_message("Setting param M3 '%d' to '%p'\n", param_id, ptr);
 
           curl_object->last_easy_status =
-            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, ptr);	
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, ptr);
         }
       else if(G_IS_PARAM_SPEC_BOOLEAN(pspec))
 	{
           gboolean val = g_value_get_boolean(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%d'\n", param_id, val);
+	    g_message("Setting param M4 '%d' to '%d'\n", param_id, val);
 
 	  curl_object->last_easy_status =
 	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
@@ -750,7 +719,7 @@ static void curl_object_set_property(GObject      *gobject,
           long val = g_value_get_long(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%f'\n", param_id, (double)val);
+	    g_message("Setting param M5 '%d' to '%f'\n", param_id, (double)val);
 
           curl_object->last_easy_status =
             curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
@@ -760,10 +729,10 @@ static void curl_object_set_property(GObject      *gobject,
           uint val = g_value_get_uint(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%d'\n", param_id, val);
+	    g_message("Setting param M6 '%d' to '%d'\n", param_id, val);
 
           curl_object->last_easy_status =
-            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);	
+            curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
         }
       else
         {
@@ -776,7 +745,7 @@ static void curl_object_set_property(GObject      *gobject,
           gpointer val = g_value_get_pointer(value) ;
 
 	  if(curl_object->debug == 1)
-	    g_message("Setting param '%d' to '%p'\n", param_id, val);
+	    g_message("Setting param M7 '%d' to '%p'\n", param_id, val);
 
 	  curl_object->last_easy_status =
 	    curl_easy_setopt(curl_object->easy, (CURLoption)param_id, val);
@@ -805,15 +774,15 @@ static void curl_object_set_property(GObject      *gobject,
     }
 
   if(curl_object->last_easy_status != CURLE_OK)
-    g_warning("Setting property '%s' failed. (curl_easy_setopt code %d)\n", 
+    g_warning("Setting property '%s' failed. (curl_easy_setopt code %d)\n",
 	      pspec->name, curl_object->last_easy_status);
 
   return ;
 }
 
-static void curl_object_get_property(GObject    *gobject, 
-				     guint       param_id, 
-				     GValue     *value, 
+static void curl_object_get_property(GObject    *gobject,
+				     guint       param_id,
+				     GValue     *value,
 				     GParamSpec *pspec)
 {
   CURLObject curl_object = CURL_OBJECT(gobject);
@@ -831,8 +800,8 @@ static void curl_object_get_property(GObject    *gobject,
     case CURLOBJECT_RESPONSE_CODE:
       {
 	long response_code;
-	if(curl_easy_getinfo(curl_object->easy, 
-			     CURLINFO_RESPONSE_CODE, 
+	if(curl_easy_getinfo(curl_object->easy,
+			     CURLINFO_RESPONSE_CODE,
 			     &response_code) == CURLE_OK)
 	  g_value_set_long(value, response_code);
       }
@@ -858,49 +827,49 @@ static gboolean _curl_status_ok(GObject *gobject)
 	  (object->last_easy_status  == CURLE_OK));
 }
 
-static gboolean curl_fd_to_watched_GIOChannel(gint         fd, 
-					      GIOCondition cond, 
-					      GIOFunc      func, 
+static gboolean curl_fd_to_watched_GIOChannel(gint         fd,
+					      GIOCondition cond,
+					      GIOFunc      func,
 					      gpointer     data)
 {
   gboolean success = FALSE;
   GIOChannel *io_channel;
-  
+
   if((io_channel = g_io_channel_unix_new(fd)))
     {
       GError *flags_error = NULL;
       GIOStatus status;
-      
-      if((status = g_io_channel_set_flags(io_channel, 
-					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
+
+      if((status = g_io_channel_set_flags(io_channel,
+					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)),
 					  &flags_error)) == G_IO_STATUS_NORMAL)
 	{
 #ifdef CURL_SET_ENCODING
 	  g_io_channel_set_encoding(io_channel, "ISO8859-1", NULL);
 #endif /* CURL_SET_ENCODING */
-	  g_io_add_watch_full(io_channel, G_PRIORITY_DEFAULT, 
-			      cond, func, data, 
+	  g_io_add_watch_full(io_channel, G_PRIORITY_DEFAULT,
+			      cond, func, data,
 			      transfer_finished_notify);
-	  
+
 	  success = TRUE;
 	}
       else
 	g_warning("%s", flags_error->message);
-      
+
       g_io_channel_unref(io_channel); /* We don't need this anymore */
     }
-  
+
   return success;
 }
 
-static gboolean curl_object_watch_func(GIOChannel  *source, 
-				       GIOCondition condition, 
+static gboolean curl_object_watch_func(GIOChannel  *source,
+				       GIOCondition condition,
 				       gpointer     user_data)
 {
   CURLObject curl_object = CURL_OBJECT(user_data);
   int running_handles = 0 ;
   gboolean call_again = FALSE;
-    
+
   if((condition & G_IO_OUT) ||
      (condition & G_IO_IN))
     {
@@ -929,7 +898,7 @@ static gboolean curl_object_watch_func(GIOChannel  *source,
       g_warning("%s\n", "something else?");
       call_again = FALSE;
     }
-    
+
   return call_again;
 }
 
@@ -944,7 +913,7 @@ static void run_multi_perform(CURLObject curl_object)
 
   g_return_if_fail(_curl_status_ok(G_OBJECT(curl_object)));
 
-  do 
+  do
     {
       try_again = FALSE;
       ++count;
@@ -970,22 +939,22 @@ static void run_multi_perform(CURLObject curl_object)
           FD_ZERO(&exc_set);
 
           /* Stupid curl, why can't I get the fd to the current added job? */
-          curl_object->last_multi_status = curl_multi_fdset(curl_object->multi, 
-                                                            &read_set, &write_set, 
+          curl_object->last_multi_status = curl_multi_fdset(curl_object->multi,
+                                                            &read_set, &write_set,
                                                             &exc_set, &fd_max);
           if(fd_max == -1) {
             g_warning("curl_multi_fdset returned fd_max as -1; trying again\n");
             SHORT_SLEEP;
             try_again = TRUE;
           }
-          else 
+          else
             {
               for(fd = 0; fd <= fd_max; fd++)
                 {
                   if (FD_ISSET(fd, &write_set))
                     {
-                      curl_fd_to_watched_GIOChannel(fd, write_cond, 
-                                                    curl_object_watch_func, 
+                      curl_fd_to_watched_GIOChannel(fd, write_cond,
+                                                    curl_object_watch_func,
                                                     curl_object);
                       curl_object->transfer_in_progress = got_handler = TRUE;
                     }
@@ -1009,7 +978,7 @@ static CURLObjectStatus perform_later(CURLObject curl_object, gboolean use_multi
 
   if (!(details = (curl_settings_perform)g_queue_peek_tail(curl_object->perform_queue)))
     {
-      /* use previous... 
+      /* use previous...
        * This will retry the previous easy handle completely unchanged... */
       details = g_new0(curl_settings_perform_struct, 1);
       g_queue_push_head(curl_object->perform_queue, details);
@@ -1021,7 +990,7 @@ static CURLObjectStatus perform_later(CURLObject curl_object, gboolean use_multi
   return status;
 }
 
-static void save_settings(CURLObject    curl_object, 
+static void save_settings(CURLObject    curl_object,
 			  guint         param_id,
 			  const GValue *value,
 			  GParamSpec   *pspec)
@@ -1044,14 +1013,14 @@ static void save_settings(CURLObject    curl_object,
       this_detail->option = (CURLoption)param_id;
       this_detail->pspec  = g_param_spec_ref(pspec);
 
-      g_value_init(&(this_detail->value), 
+      g_value_init(&(this_detail->value),
 		   G_PARAM_SPEC_VALUE_TYPE(pspec));
       g_value_copy(value, &(this_detail->value));
 
-      details->settings_list = g_list_append(details->settings_list, 
+      details->settings_list = g_list_append(details->settings_list,
 					     this_detail);
     }
-  
+
   return ;
 }
 
@@ -1065,7 +1034,7 @@ static void invoke_set(gpointer list_data, gpointer user_data)
   curl_class    = CURL_OBJECT_GET_CLASS(curl_object);
   gobject_class = G_OBJECT_CLASS(curl_class);
 
-  (gobject_class->set_property)(G_OBJECT(curl_object), 
+  (gobject_class->set_property)(G_OBJECT(curl_object),
 				setting->option,
 				&(setting->value),
 				setting->pspec);
@@ -1103,7 +1072,7 @@ static void transfer_finished_notify(gpointer user_data)
 
   curl_object->transfer_in_progress = FALSE;
 
-  curl_object->last_multi_status = 
+  curl_object->last_multi_status =
     curl_multi_remove_handle(curl_object->multi,
 			     curl_object->easy);
 
@@ -1139,7 +1108,7 @@ static gpointer destroy_settings_perform(curl_settings_perform details)
   details->perform_called = FALSE;
 
   g_list_foreach(details->settings_list, destroy_list_item, NULL);
-  
+
   g_list_free(details->settings_list);
 
   g_free(details);
@@ -1183,4 +1152,3 @@ static int curl_object_progress_func(void *clientp,
 
 
 } /* gbtools namespace */
-
