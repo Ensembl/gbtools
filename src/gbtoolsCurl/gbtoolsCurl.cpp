@@ -1,6 +1,7 @@
 /*  File: libcurlobject.c
  *  Author: Roy Storey (rds@sanger.ac.uk)
  *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,7 +204,7 @@ CURLObjectStatus CURLObjectSet(CURLObject curl_object, const gchar *first_arg_na
 CURLObjectStatus CURLObjectPerform(CURLObject curl_object, gboolean use_multi)
 {
   CURLObjectStatus status = CURL_STATUS_FAILED;
-
+  use_multi = 0; // current curl has a bug with multithreading, so we disable it for now;
   if(_curl_status_ok(G_OBJECT(curl_object)))
     {
       if(use_multi)
