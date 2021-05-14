@@ -1,5 +1,6 @@
 .deps/
 Makefile.in
+Makefile
 aclocal.m4
 autom4te.cache/
 config.h.in
@@ -8,4 +9,15 @@ config/
 configure
 gbtools_version.m4
 m4/
+*.a
+*.la
+*.lai
+*.lo
+*.o
+*.gch
 NOTES
+stamp-h1
+config.log
+config.status
+libtool
+config.h

@@ -1,28 +1,29 @@
 /*  File: libcurlobject.c
  *  Author: Roy Storey (rds@sanger.ac.uk)
- *  Copyright (c) 2006-2015: Genome Research Ltd.
+ *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
- * ZMap is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *-------------------------------------------------------------------
  * This file is part of the ZMap genome database package
  * originally written by:
- *
- * 	Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk,
- *      Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
- *
+ * 
+ *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
+ *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
+ *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
+ *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
+ *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
+ *  
  * Description: Object to access curl send/receive http requests.
  *
  *-------------------------------------------------------------------
@@ -203,7 +204,7 @@ CURLObjectStatus CURLObjectSet(CURLObject curl_object, const gchar *first_arg_na
 CURLObjectStatus CURLObjectPerform(CURLObject curl_object, gboolean use_multi)
 {
   CURLObjectStatus status = CURL_STATUS_FAILED;
-
+  use_multi = 0; // current curl has a bug with multithreading, so we disable it for now;
   if(_curl_status_ok(G_OBJECT(curl_object)))
     {
       if(use_multi)
@@ -937,7 +938,7 @@ static void run_multi_perform(CURLObject curl_object)
 {
   CURLMsg *easy_msg;
   int still_runnning = 0;
-  gboolean got_handler = FALSE;
+  bool got_handler = FALSE;
   gboolean try_again = FALSE;
   int max_tries = 100;
   int count = 0;

@@ -1,27 +1,28 @@
 /*  File: gbtoolsTrackhub.hpp
  *  Author: Gemma Barson (gb10@sanger.ac.uk)
- *  Copyright (c) 2016: Genome Research Ltd.
+ *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
- * gbtools is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *-------------------------------------------------------------------
- * This file is part of the gbtools genome browser tools library, 
- * written by
- *      Ed Griffiths      (Sanger Institute, UK)  <edgrif@sanger.ac.uk>
- *      Gemma Barson      (Sanger Institute, UK)  <gb10@sanger.ac.uk>
- *      Steve Miller      (Sanger Institute, UK)  <sm23@sanger.ac.uk>
+ * This file is part of the gbtools genome browser tools library,
+ * originally written by:
+ *
+ *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
+ *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
+ *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
+ *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
+ *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
  *
  * Description: Ensembl Track Hub Registry functions
  *----------------------------------------------------------------------------
@@ -55,7 +56,7 @@ public:
         std::string url,
         std::string file_type,
         int fields,
-        std::string visibility) 
+        std::string visibility)
     : name_(name),
       shortLabel_(shortLabel),
       url_(url),
@@ -90,8 +91,8 @@ class TrackDb
 {
 public:
   TrackDb() {} ;
-  
-  TrackDb(const std::string &id, 
+
+  TrackDb(const std::string &id,
           const std::string &name,
           const std::string &shortLabel,
           const std::string &longLabel,
@@ -103,8 +104,8 @@ public:
           const int num_with_data,
           const std::list<std::string> &file_types,
           const std::list<Track> &tracks
-          ) 
-    : id_(id), 
+          )
+    : id_(id),
       hub_name_(name),
       hub_shortLabel_(shortLabel),
       hub_longLabel_(longLabel),
@@ -153,8 +154,8 @@ public:
   Trackhub(std::string name,
            std::string shortLabel,
            std::string longLabel,
-           std::string url) 
-    : name_(""), 
+           std::string url)
+    : name_(""),
       shortLabel_(""),
       longLabel_(""),
       url_("")
@@ -207,7 +208,7 @@ public:
   bool login(const std::string &user, const std::string &pwd, std::string &err_msg);
   bool logout(std::string &err_msg);
 
-  Json::Value registerHub(const std::string &url, 
+  Json::Value registerHub(const std::string &url,
                           const std::map<std::string, std::string> &assemblies,
                           const std::string &type,
                           const bool is_public,
