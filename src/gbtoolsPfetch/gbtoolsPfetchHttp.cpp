@@ -1,6 +1,7 @@
 /*  File: gbtoolsPfetch.cpp
  *  Author: Ed Griffiths (edgrif@sanger.ac.uk)
  *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +17,13 @@
  *-------------------------------------------------------------------
  * This file is part of the ZMap genome database package
  * originally written by:
- * 
+ *
  *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
  *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
  *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
  *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
- *  
+ *
  * Description: http interface to pfetch server, retrieves sequence
  *              information by direct http requests to pfetch server
  *              using libcurl to do the requests.
@@ -154,7 +155,7 @@ namespace gbtools
 
         if (proxy_)
           CURLObjectSet(pfetch_data->curl_object, "proxy",  proxy_, NULL) ;
-      
+
         pfetch_data->request_counter++ ;
 
         if (CURLObjectPerform(pfetch_data->curl_object, TRUE) == CURL_STATUS_FAILED)
@@ -167,7 +168,7 @@ namespace gbtools
             CURLObjectErrorMessage(pfetch_data->curl_object, &curl_object_error) ;
 
             error_size = strlen(curl_object_error);
-             
+
             result = pfetch_data->error_func(curl_object_error, &error_size, &err_msg, pfetch_data->user_data) ;
 
             /* set our return status */
@@ -183,7 +184,7 @@ namespace gbtools
 
 
 
-  
+
   PfetchHttp::~PfetchHttp()
   {
     free((void *)cookie_jar_location_) ;
@@ -218,13 +219,13 @@ namespace gbtools
         char **argv_ptr = &argv[1];
 
         post_string = g_string_sized_new(128);
-      
+
 
         //AGH....HACK FOR NOW....BLIXEM SETS UP "request=" IN THE CONFIG FILE, ZMAP DOESN'T....
         if (!(strstr(sequence, "request=")))
           g_string_append_printf(post_string, "request=");
 
-        // this all seems unecessary but let's go with it for now.....      
+        // this all seems unecessary but let's go with it for now.....
         pfetch_get_argv(location, full, sequence, &argv[0]) ;
 
         if(argv_ptr && *argv_ptr)
@@ -257,7 +258,7 @@ namespace gbtools
       argv[current++] = (char *)request ;
 
     argv[current] = NULL ;
-  
+
     return ;
   }
 
@@ -268,7 +269,7 @@ namespace gbtools
   static size_t http_curl_header_func( void *ptr, size_t size, size_t nmemb, void *stream)
   {
     size_t size_handled = 0;
-    
+
     size_handled = size * nmemb;
 
     return size_handled;
@@ -290,7 +291,7 @@ namespace gbtools
       {
         size_handled = actual_read ;
       }
-  
+
     if (saved_size != actual_read)
       g_warning("'%d' != '%d'. Are you sure?", saved_size, actual_read);
 
@@ -320,4 +321,3 @@ namespace gbtools
 
 
 } // gbtools namespace should always be last
-

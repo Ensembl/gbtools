@@ -1,6 +1,7 @@
 /*  File: gbtoolsPfetch.hpp
  *  Author: Ed Griffiths (edgrif@sanger.ac.uk)
  *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +17,13 @@
  *-------------------------------------------------------------------
  * This file is part of the ZMap genome database package
  * originally written by:
- * 
+ *
  *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
  *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
  *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
  *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
- *  
+ *
  * Description: Object implementing fetching of sequence data via
  *              the pfetch server either through a pipe to the
  *              pfetch command line script or through http requests.

@@ -1,6 +1,7 @@
 /*  File: gbtoolsGUI.cpp
  *  Author: Gemma Barson, 2015-03-02
  *  Copyright (c) 2006-2017 Genome Research Ltd
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  * ---------------------------------------------------------------------------
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ---------------------------------------------------------------------------
- * This file is part of the gbtools genome browser tools library, 
+ * This file is part of the gbtools genome browser tools library,
  * originally written by:
- * 
+ *
  *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
  *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
  *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
  *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
- *  
+ *
  * Description: See gbtoolsGUI.hpp
  *----------------------------------------------------------------------------
  */
@@ -32,7 +33,7 @@
 #include <string.h>
 
 
-namespace gbtools 
+namespace gbtools
 {
 
 /* When we guess max window size we allow this much space for desktop toolbars on the screen. */
@@ -41,12 +42,12 @@ namespace gbtools
 static gboolean getWorkAreaSize(GdkScreen *screen, gint *width_out, gint *height_out) ;
 
 
-/* Utility to get the size of the monitor that the given widget is displayed on. Returns true if 
+/* Utility to get the size of the monitor that the given widget is displayed on. Returns true if
  * successful, false if there was a problem (in which case output values are unchanged).
  *
  * If X windows is configured using RANDR to have several physical screens as one big
  * virtual screen then this routine will still find the size of the current physical
- * screen which is what we want for display rather then spreading zmap across several 
+ * screen which is what we want for display rather then spreading zmap across several
  * screens */
 gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_out)
 {
@@ -75,7 +76,7 @@ gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_ou
 #if CHECK_GTK_VERSION(3, 4)
 
   gdk_screen_get_monitor_workarea(screen, monitor_idx, &rect) ;
-  
+
   width = rect.width ;
   height = rect.height ;
 
@@ -101,7 +102,7 @@ gboolean GUIGetTrueMonitorSize(GtkWidget *widget, int *width_out, int *height_ou
 
   if (width_out)
     *width_out = width ;
-  
+
   if (height_out)
     *height_out = height ;
 
@@ -121,7 +122,7 @@ gboolean GUIGetTrueMonitorSizeFraction(GtkWidget *widget, const double width_fra
     {
       if (width_out)
         *width_out *= width_fraction ;
-        
+
       if (height_out)
         *height_out *= height_fraction ;
     }

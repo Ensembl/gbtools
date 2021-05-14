@@ -1,6 +1,7 @@
 /*  File: gbtoolsPfetch.cpp
  *  Author: Ed Griffiths (edgrif@sanger.ac.uk)
  *  Copyright (c) 2006-2017: Genome Research Ltd.
+ *  Copyright [2018-2021] EMBL-European Bioinformatics Institute
  *-------------------------------------------------------------------
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +17,13 @@
  *-------------------------------------------------------------------
  * This file is part of the ZMap genome database package
  * originally written by:
- * 
+ *
  *      Ed Griffiths (Sanger Institute, UK) edgrif@sanger.ac.uk
  *        Roy Storey (Sanger Institute, UK) rds@sanger.ac.uk
  *   Malcolm Hinsley (Sanger Institute, UK) mh17@sanger.ac.uk
  *       Gemma Guest (Sanger Institute, UK) gb10@sanger.ac.uk
  *      Steve Miller (Sanger Institute, UK) sm23@sanger.ac.uk
- *  
+ *
  * Description: pipe interface to pfetch server, retrieves sequence
  *              information by a pipe connected to the pfetch client.
  *
@@ -85,9 +86,9 @@ namespace gbtools
   static void pfetch_get_argv(const char *location, bool full, const char *request, char **argv) ;
 
   static bool pfetch_spawn_async_with_pipes(PfetchPipeData *pfetch_data,
-                                            char *argv[], 
-                                            GIOFunc stdout_reader, GIOFunc stderr_reader, 
-                                            GDestroyNotify pipe_data_destroy, 
+                                            char *argv[],
+                                            GIOFunc stdout_reader, GIOFunc stderr_reader,
+                                            GDestroyNotify pipe_data_destroy,
                                             GError **error,
                                             GChildWatchFunc child_func) ;
 
@@ -99,7 +100,7 @@ namespace gbtools
   static void detach_and_kill(PfetchPipeData *pfetch_data) ;
   static void detach_group_for_later_kill(void *unused) ;
 
-  static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc func, 
+  static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc func,
                                               gpointer data, GDestroyNotify destroy,
                                               guint *source_id_out);
 
@@ -140,10 +141,10 @@ namespace gbtools
     pfetch_get_argv(location_, opts_.full, sequence, &argv[0]) ;
 
     if ((result = pfetch_spawn_async_with_pipes(pfetch_data,
-                                                argv, 
+                                                argv,
                                                 (reader_func_ != 0 ? pipe_stdout_func : NULL),
                                                 (error_func_  != 0 ? pipe_stderr_func : NULL),
-                                                NULL, &error, 
+                                                NULL, &error,
                                                 pfetch_child_watch_func)))
       {
         pfetch_data->timeout_source_id = g_timeout_add(30 * 1000, timeout_pfetch_process, pfetch_data) ;
@@ -156,7 +157,7 @@ namespace gbtools
 
         // logging ?
       }
-    
+
     return result ;
   }
 
@@ -188,7 +189,7 @@ namespace gbtools
       argv[current++] = (char *)request ;
 
     argv[current] = NULL ;
-  
+
     return ;
   }
 
@@ -207,7 +208,7 @@ namespace gbtools
  * g_spawn_async_with_pipes() uses apply as NULL will be passed in
  * place there.
  *
- * N.B. passing a GChildWatchFunc is untested... I waited for 
+ * N.B. passing a GChildWatchFunc is untested... I waited for
  * G_IO_HUP instead.
  *
  * @param **argv        Argument vector
@@ -215,9 +216,9 @@ namespace gbtools
  * @param stderr_reader GIOFunc to handle reading from the pipe.
  * @param pipe_data     user data to pass to the GIOFunc
  * @param pipe_data_destroy GDestroyNotify for pipe_data
- * @param error         GError location to return into 
+ * @param error         GError location to return into
  *                       (from g_spawn_async_with_pipes)
- * @param child_func    A GChildWatchFunc for the spawned PID 
+ * @param child_func    A GChildWatchFunc for the spawned PID
  * @param child_func_data data for the child_func
  * @return              gboolean from g_spawn_async_with_pipes()
  *
@@ -225,7 +226,7 @@ namespace gbtools
 
 static bool pfetch_spawn_async_with_pipes(PfetchPipeData *pfetch_data,
                                           char *argv[],
-                                          GIOFunc stdout_reader, GIOFunc stderr_reader, 
+                                          GIOFunc stdout_reader, GIOFunc stderr_reader,
                                           GDestroyNotify pipe_data_destroy,
                                           GError **error,
                                           GChildWatchFunc child_func)
@@ -238,7 +239,7 @@ static bool pfetch_spawn_async_with_pipes(PfetchPipeData *pfetch_data,
   gint *stdin_ptr = NULL,                                   // stdin is unused.
     *stdout_ptr = NULL,
     *stderr_ptr = NULL,
-    stdout_fd, 
+    stdout_fd,
     stderr_fd;
   GSpawnFlags flags = G_SPAWN_SEARCH_PATH;
   GError *our_error = NULL ;
@@ -254,9 +255,9 @@ static bool pfetch_spawn_async_with_pipes(PfetchPipeData *pfetch_data,
     child_setup = NULL ;
 
   if ((result = g_spawn_async_with_pipes(cwd, argv, envp,
-                                         flags, child_setup, child_data, 
+                                         flags, child_setup, child_data,
                                          &child_pid, stdin_ptr,
-                                         stdout_ptr, stderr_ptr, 
+                                         stdout_ptr, stderr_ptr,
                                          &our_error)))
     {
       GIOCondition read_cond  = (GIOCondition)(G_IO_IN  | G_IO_HUP | G_IO_ERR | G_IO_NVAL);
@@ -294,8 +295,8 @@ static gboolean pipe_stdout_func(GIOChannel *source, GIOCondition condition, gpo
       gchar output[PFETCH_READ_SIZE] = {0};
       gsize actual_read = 0;
       GError *error = NULL;
-      
-      if((io_status = g_io_channel_read_chars(source, &output[0], PFETCH_READ_SIZE, 
+
+      if((io_status = g_io_channel_read_chars(source, &output[0], PFETCH_READ_SIZE,
 					      &actual_read, &error)) == G_IO_STATUS_NORMAL)
 	{
 	  guint actual_read_uint = (guint)actual_read;
@@ -338,7 +339,7 @@ static gboolean pipe_stdout_func(GIOChannel *source, GIOCondition condition, gpo
     }
   else if(condition & G_IO_HUP)
     {
-      
+
     }
   else if(condition & G_IO_ERR)
     {
@@ -368,7 +369,7 @@ static gboolean pipe_stderr_func(GIOChannel *source, GIOCondition condition, gpo
       gsize actual_read = 0;
       GError *error = NULL;
 
-      if ((status = g_io_channel_read_chars(source, &text[0], PFETCH_READ_SIZE, 
+      if ((status = g_io_channel_read_chars(source, &text[0], PFETCH_READ_SIZE,
                                             &actual_read, &error)) == G_IO_STATUS_NORMAL)
 	{
 	  guint actual_read_uint = (guint)actual_read;
@@ -405,7 +406,7 @@ static void pfetch_child_watch_func(GPid pid, gint status, gpointer user_data)
       else if (pfetch_data->watch_data)
 	{
 	  pfetch_data->watch_pid = 0;
-          
+
           pfetch_data->closed_func(pfetch_data->user_data) ;
 	}
       else
@@ -447,7 +448,7 @@ static gboolean timeout_pfetch_process(gpointer user_data)
       /* returning FALSE ensures it's removed. having a
        * g_source_remove() go on, might be bad. */
       pfetch_data->timeout_source_id = 0;
-	  
+
       detach_and_kill(pfetch_data) ;
     }
 
@@ -462,7 +463,7 @@ static void source_remove_and_zero(guint *source_id)
   if(source_id && *source_id)
     {
       g_source_remove(*source_id);
-      
+
       *source_id = 0;
     }
 
@@ -550,7 +551,7 @@ static void detach_group_for_later_kill(void *unused)
 }
 
 
-static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc func, 
+static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc func,
 					    gpointer data, GDestroyNotify destroy,
 					    guint *source_id_out)
 {
@@ -562,8 +563,8 @@ static gboolean fd_to_GIOChannel_with_watch(gint fd, GIOCondition cond, GIOFunc 
       GError *flags_error = NULL;
       GIOStatus status;
 
-      if((status = g_io_channel_set_flags(io_channel, 
-					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)), 
+      if((status = g_io_channel_set_flags(io_channel,
+					  (GIOFlags)(G_IO_FLAG_NONBLOCK | g_io_channel_get_flags(io_channel)),
 					  &flags_error)) == G_IO_STATUS_NORMAL)
 	{
 	  guint source_id;
