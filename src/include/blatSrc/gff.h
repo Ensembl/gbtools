@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -116,7 +115,7 @@ struct gffFile *gffFileNew(char *fileName);
 void gffFileAdd(struct gffFile *gff, char *fileName, int baseOffset);
 /* Add file to gffFile. */
 
-void gffFileAddRow(struct gffFile *gff, int baseOffset, char *words[], int wordCount,
+void gffFileAddRow(struct gffFile *gff, int baseOffset, char *words[], int wordCount, 
 		char *fileName, int lineIx);
 /* Process one row of GFF file (a non-comment line parsed by tabs normally). */
 
@@ -140,3 +139,4 @@ boolean gffHasGtfGroup(char *line);
 
 
 #endif /* GFF_H */
+

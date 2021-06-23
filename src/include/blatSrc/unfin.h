@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -24,8 +23,9 @@ struct contigTree
     int orientation;   /* +1 or -1. Strand relative to parent.*/
     int corder;        /* Order of contig in genBank submission. */
     int browserOffset; /* Offset relative to parent for browser, ordered by ensemble, with
-                        * ensContigPad N's between each contig. */
+                        * ensContigPad N's between each contig. */ 
     int browserLength; /* Size including padding. */
     };
 
 #endif /* UNFIN_H */
+

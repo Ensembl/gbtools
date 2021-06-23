@@ -1,10 +1,9 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
  * permitted only by explicit agreement with Jim Kent (jim_kent@pacbell.net) *
  *****************************************************************************/
-/* trans3 - a sequence and three translated reading frames.
+/* trans3 - a sequence and three translated reading frames. 
  * In the gfServer/gfClient system these are found in a
  * t3Hash that has as values lists of trans3.  These reflect
  * the fragments of the genome actually loaded in memory

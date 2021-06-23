@@ -1,10 +1,9 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
  * permitted only by explicit agreement with Jim Kent (jim_kent@pacbell.net) *
  *****************************************************************************/
-/* oldGff.h - This reads a *special* type of .GFF file.
+/* oldGff.h - This reads a *special* type of .GFF file.  
  * Some of the routines herein expect the gff file to include
  * both DNA and gene/intron/exon info.  They expect the
  * genes to be named by the group field. */
@@ -41,7 +40,7 @@ typedef struct gffSegment GffIntron;
 typedef struct gffSegment GffExon;
 
 struct gffGene
-/* At the end of a GFF file are a number of genes, each of which
+/* At the end of a GFF file are a number of genes, each of which 
  * is a list of exons/introns. */
     {
     struct gffGene *next;	/* This must be first field! */
@@ -85,14 +84,14 @@ struct gffGene *gffDupeGene(struct gff *gff, struct gffGene *oldGene);
 
 struct gffGene *gffDupeGeneAndSurrounds(struct gff *gff, struct gffGene *oldGene,
     int leftExtra, int rightExtra);
-/* Make a duplicate of gene with extra DNA around coding region.
+/* Make a duplicate of gene with extra DNA around coding region. 
  * gffFreeGene it when done. */
 
 struct gffGene *gffGeneWithOwnDna(struct gff *gff, char *geneName);
 /* Find gene with given name.  Case sensitive. */
 
 void gffFreeGene(struct gffGene **pGene);
-/* Free a gene returned with dupeGene or geneWithOwnDna.
+/* Free a gene returned with dupeGene or geneWithOwnDna. 
  * (You don't want to free the ones returned by findGene,
  * they are still owned by the gff.)
  */
@@ -101,3 +100,4 @@ struct dnaSeq *gffReadDnaSeq(char *fileName);
 /* Open gff file and read DNA sequence from it. */
 
 #endif /* GFF_H */
+

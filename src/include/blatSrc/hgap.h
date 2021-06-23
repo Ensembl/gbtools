@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -10,7 +9,7 @@
 
 #ifndef DNASEQ_H
 #include "dnaseq.h"
-#endif
+#endif 
 
 #ifndef UNFIN_H
 #include "unfin.h"
@@ -57,12 +56,12 @@ FILE *hgCreateTabFile(char *tableName);
  * tableName.tab in the current directory.) */
 
 void hgLoadTabFile(struct sqlConnection *conn, char *tableName);
-/* Load tab delimited file corresponding to tableName.
+/* Load tab delimited file corresponding to tableName. 
  * Should only be used after hgCreatTabFile, and only after
  * file closed. */
 
 
-enum
+enum 
 /* Various constants used. */
     {
     hgContigPad = 800,	  /* Number of N's between contigs. */
@@ -143,7 +142,7 @@ int hgOffset(struct hgNest *source, int offset, struct hgNest *dest);
  * describing a range of DNA. The later structures include
  * the first fields of the earlier ones.  Routines that
  * work on the earlier structures will also work on
- * the later.  This is a crude but effective form of single
+ * the later.  This is a crude but effective form of single 
  * inheritance. */
 
 struct hgRange
@@ -231,3 +230,4 @@ struct hgAlignment
     };
 
 #endif /* HGAP_H */
+

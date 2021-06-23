@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -44,12 +43,12 @@ struct xaAli *xaReadNext(FILE *f, boolean condensed);
 /* Read next xaAli from file. If condensed
  * don't fill int query, target, qSym, tSym, or hSym. */
 
-struct xaAli *xaReadRange(char *rangeIndexFileName, char *dataFileName,
+struct xaAli *xaReadRange(char *rangeIndexFileName, char *dataFileName, 
     int start, int end, boolean condensed);
 /* Return list of all xaAlis that range from start to end.  If condensed
  * don't fill int query, qSym, tSym, or hSym. */
 
-struct xaAli *xaRdRange(FILE *ix, FILE *data,
+struct xaAli *xaRdRange(FILE *ix, FILE *data, 
     int start, int end, boolean condensed);
 /* Like xaReadRange but pass in open files rather than file names. */
 
@@ -61,3 +60,4 @@ char *xaChromIxSuffix();
 
 
 #endif /* XA_H */
+

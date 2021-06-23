@@ -1,5 +1,4 @@
-
-/* Shared Resource file
+/* Shared Resource file 
  *
  * This file is copyright 2002 Jim Kent, but license is hereby
  * granted for all use - public, private or commercial. */
@@ -41,3 +40,6 @@ void shaCleanup(struct shaResList *list);
 void shaInit(struct shaResList *list, void (*freeData)(void *pData));
 /* Start up resource list. */
 #endif /* SHARES_H */
+
+
+

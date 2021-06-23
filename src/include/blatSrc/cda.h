@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -12,7 +11,7 @@
 
 #ifndef MEMGFX_H
 #include "memgfx.h"
-#endif
+#endif 
 
 #ifndef FUZZYFIND_H
 #include "fuzzyFind.h"
@@ -78,7 +77,7 @@ void cdaCoalesceBlocks(struct cdaAli *ca);
 void cdaCoalesceFast(struct cdaAli *ca);
 /* Coalesce blocks as above, but don't update the score. */
 
-void cdaShowAlignmentTrack(struct memGfx *mg,
+void cdaShowAlignmentTrack(struct memGfx *mg, 
     int xOff, int yOff, int width, int height,  Color goodColor, Color badColor,
     int dnaSize, int dnaOffset, struct cdaAli *cda, char repeatChar);
 /* Draw alignment on a horizontal track of picture. */
@@ -95,7 +94,7 @@ void cdaFreeAli(struct cdaAli *ca);
 void cdaFreeAliList(struct cdaAli **pList);
 /* Free list of cdaAli. */
 
-struct cdaAli *cdaAliFromFfAli(struct ffAli *aliList,
+struct cdaAli *cdaAliFromFfAli(struct ffAli *aliList, 
     DNA *needle, int needleSize, DNA *hay, int haySize, boolean isRc);
 /* Convert from ffAli to cdaAli format. */
 

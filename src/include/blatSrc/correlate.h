@@ -36,3 +36,4 @@ double correlateArrays(double *x, double *y, int size);
 /* Return correlation of two arrays of doubles. */
 
 #endif /* CORRELATE_H */
+

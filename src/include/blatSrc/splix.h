@@ -1,4 +1,3 @@
-
 /* splix - splat (speedy local alignment tool)  index.  Index that helps map short reads
  * quickly to the genome. */
 /* This file is copyright 2008 Jim Kent, but license is hereby
@@ -16,9 +15,9 @@ struct splixFileHeader
  *    indexSlotSizes (4^^12 32 bit words containing size of each index slot
  *    indexSlots - explained more below
  * Each of these sections is padded with zeroes to end on an 8 byte (64 bit) boundary.
- * The index section consists of 4^^12 (16 million roughly) index slots.  Each slot
+ * The index section consists of 4^^12 (16 million roughly) index slots.  Each slot 
  * corresponds to a DNA 12-mer.  The format of a slot is:
- *    hexesBefore1 - size # of 16 bit words, each containing 6 bases of DNA 2 bits/base
+ *    hexesBefore1 - size # of 16 bit words, each containing 6 bases of DNA 2 bits/base 
  *                   and 4 bits of zero (most significant bits are zero).  These represent
  *                   the sixmers found before the 12-mer.  They are sorted numerically.
  *    hexesBefore2 - as hexesBefore, but contains sixmer six before the 12-mer.
@@ -44,7 +43,7 @@ struct splixFileHeader
     bits64 reserved[11];/* All zeroes for now. */
     };
 
-struct splix
+struct splix 
 /* Short read index in memory */
     {
     struct splix *next;
@@ -75,7 +74,7 @@ int splixOffsetToChromIx(struct splix *splix, bits32 tOffset);
 
 /** Stuff to define SPLIX files **/
 #define SPLIX_MAGIC 0x5616A283	/* Magic number at start of SPLIX file */
-#define SPLIX_MAJOR_VERSION 0
+#define SPLIX_MAJOR_VERSION 0	
 #define SPLIX_MINOR_VERSION 0
 
 #endif /* SPLIX_H */

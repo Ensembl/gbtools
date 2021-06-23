@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -9,8 +8,8 @@
  *
  * This accesses a file of name/offset pairs that are sorted by
  * name.  Does a binary search of file to find the offset given name.
- * Most typically this is used to do a quick lookup given an index file.
- */
+ * Most typically this is used to do a quick lookup given an index file. 
+ */ 
 
 struct snof
 /* Sorted Name Offset File structure.  Get one from snofOpen.  Use
@@ -58,3 +57,4 @@ boolean snofFindFirstStartingWith(struct snof *snof, char *prefix, int prefixSiz
 boolean snofFindOffset(struct snof *snof, char *name, long *pOffset);
 /* Find offset corresponding with name.  Returns FALSE if no such name
  * in the index file. */
+

@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -10,11 +9,11 @@
 
 #ifndef DNAUTIL_H
 #include "dnautil.h"
-#endif
+#endif 
 
 #ifndef DLIST_H
 #include "dlist.h"
-#endif
+#endif 
 
 #ifndef UNFIN_H
 #include "unfin.h"
@@ -43,7 +42,7 @@ struct ensFeature
     int score;                     /* Score (I don't know units) */
     int orientation;               /* +1 or -1.  Strand relative to contig. */
     int type;                      /* Index into analysis table describing type of feature. */
-    char *typeName;                /* Subtype of type really. May be NULL. Not alloced here. */
+    char *typeName;                /* Subtype of type really. May be NULL. Not alloced here. */ 
     int qStart, qEnd;              /* Query (cDNA, protein, etc.) sequence position. */
     char *qName;                   /* Query sequence name. */
     };
@@ -87,7 +86,7 @@ struct ensGene
     };
 
 void ensGetAnalysisTable(struct ensAnalysis ***retTable, int *retCount);
-/* Returns analysis table (array of different things a feature can be).
+/* Returns analysis table (array of different things a feature can be). 
  * No need to free this, it's managed by system. */
 
 struct dnaSeq *ensDnaInBacRange(char *clone, int start, int end, enum dnaCase dnaCase);
@@ -151,7 +150,7 @@ int ensBacSubmitLength(char *clone);
 /* Return size of clone in GenBank/EMBL submission  coordinate space. */
 
 struct contigTree *ensBacContigs(char *bacId);
-/* Return contigTree rooted at Bac.  Do not free this or modify it,
+/* Return contigTree rooted at Bac.  Do not free this or modify it, 
  * the system takes care of it. */
 
 struct contigTree *ensGetContig(char *contigId);
@@ -165,3 +164,5 @@ void ensGeneBounds(struct ensGene *gene, int *retStart, int *retEnd);
 /* Find beginning and end of gene in browser coordinates. */
 
 #endif /* ENS_H */
+
+

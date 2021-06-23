@@ -1,5 +1,4 @@
-
-/* dlist.h - Headers for generic doubly-linked list routines.
+/* dlist.h - Headers for generic doubly-linked list routines. 
  *
  * This file is copyright 2002 Jim Kent, but license is hereby
  * granted for all use - public, private or commercial. */
@@ -120,9 +119,9 @@ struct dlNode *dlGetAfterTail(struct dlList *list);
 /* Get the node after the tail of the list */
 
 void dlSort(struct dlList *list, int (*compare )(const void *elem1,  const void *elem2));
-/* Sort a doubly linked list with Qsort and a temporary array.
+/* Sort a doubly linked list with Qsort and a temporary array. 
  * The arguments to the compare function in real, non-void, life
- * are pointers to pointers of the type that is in the val field of
+ * are pointers to pointers of the type that is in the val field of 
  * the nodes of the list. */
 
 void *dlListToSlList(struct dlList *dList);
@@ -135,3 +134,5 @@ struct dlNode *dlValInList(struct dlList *list, void *val);
 /* Return node on list if any that has associated val. */
 
 #endif /* DLIST_H */
+
+

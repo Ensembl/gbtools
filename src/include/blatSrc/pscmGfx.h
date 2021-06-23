@@ -1,6 +1,5 @@
-
 /* pscmGfx - routines for making postScript output seem a
- * lot like 256 color bitmap output.
+ * lot like 256 color bitmap output. 
  *
  * This file is copyright 2002 Jim Kent, but license is hereby
  * granted for all use - public, private or commercial. */
@@ -10,7 +9,7 @@
 
 #include "memgfx.h"
 
-struct pscmGfx
+struct pscmGfx 
 /* Structure to simululate 256 color image
  * in postScript - so to make it easier to
  * swap between memGfx/gif output and PostScript
@@ -49,15 +48,15 @@ int pscmFindColorIx(struct pscmGfx *pscm, int r, int g, int b);
 void pscmSetColor(struct pscmGfx *pscm, Color color);
 /* Set current color to Color. */
 
-void pscmBox(struct pscmGfx *pscm, int x, int y,
+void pscmBox(struct pscmGfx *pscm, int x, int y, 
 	int width, int height, int colorIx);
 /* Draw a box. */
 
-void pscmLine(struct pscmGfx *pscm,
+void pscmLine(struct pscmGfx *pscm, 
 	int x1, int y1, int x2, int y2, int colorIx);
 /* Draw a line from one point to another. */
 
-void pscmText(struct pscmGfx *pscm, int x, int y, int colorIx,
+void pscmText(struct pscmGfx *pscm, int x, int y, int colorIx, 
 	MgFont *font, char *text);
 /* Draw a line of text with upper left corner x,y. */
 
@@ -65,7 +64,7 @@ void pscmTextRight(struct pscmGfx *pscm, int x, int y, int width, int height,
 	int color, MgFont *font, char *text);
 /* Draw a line of text right justified in box defined by x/y/width/height */
 
-void pscmTextCentered(struct pscmGfx *pscm, int x, int y,
+void pscmTextCentered(struct pscmGfx *pscm, int x, int y, 
 	int width, int height, int color, MgFont *font, char *text);
 /* Draw a line of text centered in box defined by x/y/width/height */
 

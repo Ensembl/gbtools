@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -26,7 +25,8 @@ char *flyFeaturesDir();
 /* Return the features directory. (Includes trailing slash.) */
 
 FILE *flyOpenGoodAli();
-/* Opens good alignment file and reads signature.
+/* Opens good alignment file and reads signature. 
  * (You can then cdaLoadOne() it.) */
 
 #endif /* FLYDNA_H */
+

@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -24,3 +23,4 @@ struct crudeAli *crudeAliFind(DNA *probe, int probeSize, struct nt4Seq **chrome,
 /* Returns a list of crude alignments.  (You can free this with slFreeList() */
 
 #endif /* CRUDEALI_H */
+

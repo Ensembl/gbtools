@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -43,3 +42,4 @@ DNA *nt4LoadPart(char *nt4FileName, int start, int size);
 /* Load part of an nt4 file. */
 
 #endif /* _4NT_H */
+

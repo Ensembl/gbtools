@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -33,7 +32,7 @@ struct spaceNode
     void *val;
     };
 
-struct spaceRowTracker
+struct spaceRowTracker 
 /* Keeps track of how much of row is used. */
     {
     struct spaceRowTracker *next;	/* Next in list. */
@@ -53,7 +52,7 @@ struct spaceNode *spaceSaverAdd(struct spaceSaver *ss, int start, int end, void 
 /* Add a new node to space saver. */
 
 
-struct spaceNode *spaceSaverAddOverflow(struct spaceSaver *ss, int start, int end,
+struct spaceNode *spaceSaverAddOverflow(struct spaceSaver *ss, int start, int end, 
 					void *val, boolean allowOverflow);
 /* Add a new node to space saver. Returns NULL if can't fit item in
  * and allowOverflow == FALSE. If allowOverflow == TRUE then put items
@@ -63,3 +62,4 @@ struct spaceNode *spaceSaverAddOverflow(struct spaceSaver *ss, int start, int en
 void spaceSaverFinish(struct spaceSaver *ss);
 /* Tell spaceSaver done adding nodes. */
 #endif /* SPACESAVER_H */
+

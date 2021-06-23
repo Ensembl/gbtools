@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -64,3 +63,4 @@ boolean keyTextScan(char *text, char *key, char *valBuf, int valBufSize);
 /* Get value of key in text. Return FALSE if key doesn't exist. */
 
 #endif /* KEYS_H */
+

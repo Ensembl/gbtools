@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -11,7 +10,7 @@
 
 #ifndef DNAUTIL_H
 #include "dnautil.h"
-#endif
+#endif 
 
 #ifndef HASH_H
 #include "hash.h"
@@ -111,3 +110,4 @@ int nibGetSize(char* nibFile);
 /* Get the number of nucleotides in a nib */
 
 #endif /* NIB_H */
+

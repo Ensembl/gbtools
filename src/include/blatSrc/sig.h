@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -98,3 +97,5 @@
 /* Signature for a url data cache bitmap file. */
 
 #endif /* SIG_H */
+
+

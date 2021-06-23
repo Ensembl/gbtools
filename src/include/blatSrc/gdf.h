@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (C) 2000 Jim Kent.  This source code may be freely used         *
  * for personal, academic, and non-profit purposes.  Commercial use          *
@@ -59,3 +58,4 @@ void gdfUpcExons(struct gdfGene *gene, int geneOffset, DNA *dna, int dnaSize, in
 
 
 #endif /* GDF_H */
+

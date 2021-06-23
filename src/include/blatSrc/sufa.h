@@ -1,4 +1,3 @@
-
 /* sufa - suffix array for genome.  Use sufaMake utility to create one of these, and
  * the routines here to access it.  See comment by sufaFileHeader for file format. */
 /* This file is copyright 2008 Jim Kent, but license is hereby
@@ -10,7 +9,7 @@
 struct sufaFileHeader
 /* Short read index file binary file header.  A sufa file starts with this fixed 128 byte
  * structure.  It is followed by the following sections:
- *    chromosome name strings - zero terminated.  Padded with zero to 4 byte boundary
+ *    chromosome name strings - zero terminated.  Padded with zero to 4 byte boundary 
  *    chromosome sizes (32 bits each)
  *    chromosome DNA - one byte per base lower case.  A zero between each chrom, and a zero before
  *                     and after (to make some end conditions easier).  Padded if need be with
@@ -29,7 +28,7 @@ struct sufaFileHeader
     bits64 reserved[11];/* All zeroes for now. */
     };
 
-struct sufa
+struct sufa 
 /* Suffix array in memory */
     {
     struct sufa *next;
@@ -55,7 +54,7 @@ int sufaOffsetToChromIx(struct sufa *sufa, bits32 tOffset);
 
 /** Stuff to define SUFA files **/
 #define SUFA_MAGIC 0x6727B283	/* Magic number at start of SUFA file */
-#define SUFA_MAJOR_VERSION 0
+#define SUFA_MAJOR_VERSION 0	
 #define SUFA_MINOR_VERSION 0
 
 #endif /* SUFA_H */
